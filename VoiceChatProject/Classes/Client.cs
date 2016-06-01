@@ -297,19 +297,17 @@ namespace Voicer
 
         public bool HandleSoundPacket(byte[] data)
         {
-            short clientId = BitConverter.ToInt16(data, 2);
-            byte[] soundData = data.Skip(4).ToArray<byte>();
+            short clientId = BitConverter.ToInt16(data, 0);
+            short channelId = BitConverter.ToInt16(data, 2);
 
-            foreach (Channel channel in channelList)
+            byte[] soundData = data.Skip(4).ToArray();
+            if (this.channelID != channelId)
+                return false;
+
+            User user = FindClient(clientId);
+            if (user.ID != -1)
             {
-                foreach (User client in channel.users)
-                {
-                    if (client.ID == clientId)
-                    {
-                        client.clientAudio.AddSound(soundData);
-                        return true;
-                    }
-                }
+                user.clientAudio.AddSound(soundData);
             }
             return true;
         }

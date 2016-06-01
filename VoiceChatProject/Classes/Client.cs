@@ -388,13 +388,16 @@ namespace Voicer
 
         public bool HandleGetKeyPacket(byte[] data)
         {
-            this.serverKey = Encoding.ASCII.GetString(data);
+            serverKey = Encoding.ASCII.GetString(data);
             try
             {
                 List<string> serverKeys = File.ReadAllLines(Environment.CurrentDirectory + "/client.txt").ToList();
                 int serverArrayIndex = serverKeys.IndexOf(serverKey);
                 if (serverArrayIndex < 0)
-                    throw new ArgumentOutOfRangeException();
+                {
+                    RequetKey();
+                    return false;
+                }
 
                 clientKey = serverKeys[serverKeys.IndexOf(serverKey) + 1];
                 this.SendMessage(MessageHandler.Messages.SETKEY, BitConverter.GetBytes(this.clientID).Concat(Encoding.ASCII.GetBytes(clientKey)).ToArray());
@@ -404,13 +407,11 @@ namespace Voicer
             }
             catch (ArgumentOutOfRangeException)
             {
-                Console.WriteLine("Client key not found -- Requesting new key from server...");
                 RequetKey();
                 return false;
             }
             catch (FileNotFoundException)
             {
-                Console.WriteLine("client.txt not found -- Requesting new key from server...");
                 RequetKey();
                 return false;
             }
@@ -418,21 +419,31 @@ namespace Voicer
 
         public bool HandleSetKeyPacket(byte[] data)
         {
-            this.clientKey = Encoding.ASCII.GetString(data);
-            if (this.clientKey != "")
+            clientKey = Encoding.ASCII.GetString(data);
+            if (clientKey != "")
             {
-                List<string> serverKeys = File.ReadAllLines(Environment.CurrentDirectory + "/client.txt").ToList();
-                int serverArrayIndex = serverKeys.IndexOf(serverKey);
-                if (serverArrayIndex < 0)
-                    serverKeys.Add(serverKey);
+                List<string> serverKeys;
+                try
+                {
+                    serverKeys = File.ReadAllLines(Environment.CurrentDirectory + "/client.txt").ToList();
+                }
+                catch (FileNotFoundException)
+                {
+                    Console.WriteLine("client.txt not found -- creating new server key list.");
+                    serverKeys = new List<string>();
+                }
 
-                serverKeys.Insert(serverKeys.IndexOf(serverKey) + 1, clientKey);
-                
+                    int serverArrayIndex = serverKeys.IndexOf(serverKey);
+                    if (serverArrayIndex < 0)
+                        serverKeys.Add(serverKey);
+
+                    serverKeys.Insert(serverKeys.IndexOf(serverKey) + 1, clientKey);
+
                 File.WriteAllLines(Environment.CurrentDirectory + "/client.txt", serverKeys);
             }
             else
             {
-                Console.WriteLine("Client Key not good, requesting new one");
+                Console.WriteLine("Not matching client key on server, requesting new one");
                 RequetKey();
             }
             return true;
@@ -456,6 +467,7 @@ namespace Voicer
 
         public void RequetKey()
         {
+            Console.WriteLine("Requesting new key from server...");
             this.SendMessage(MessageHandler.Messages.NEWKEY, BitConverter.GetBytes(this.clientID));
         }
 

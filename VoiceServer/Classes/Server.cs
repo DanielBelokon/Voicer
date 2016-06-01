@@ -28,6 +28,7 @@ namespace VoiceServer
         protected bool online;
         protected Thread listenThread;
         protected UdpClient listenSocket;
+        protected AutoResetEvent packetRecieved;
 
         private Thread tickThread;
 
@@ -51,7 +52,7 @@ namespace VoiceServer
                 Administration.LoadServerKeys();
                 string[] channels = File.ReadAllLines(Environment.CurrentDirectory + "serverlayout.txt");
                 string defaultChan = channels.First();
-                this.defaultChannel = short.Parse(defaultChan);
+                defaultChannel = short.Parse(defaultChan);
 
                 if (defaultChannel > channels.Count() - 1 || defaultChannel < 1)
                 {
@@ -93,6 +94,7 @@ namespace VoiceServer
             this.port = port;
             // Start listening for incoming packets and requests
             listenThread = new Thread(new ThreadStart(StartListen));
+            packetRecieved = new AutoResetEvent(true);
             listenThread.Start();
 
             tickThread = new Thread(new ThreadStart(Tick));
@@ -298,10 +300,11 @@ namespace VoiceServer
 
             try
             {
-                if (online)
+                Console.WriteLine("Server Online.");
+                while (online)
                 {
+                    packetRecieved.WaitOne();
                     listenSocket.BeginReceive(new AsyncCallback(OnReceived), null);
-                    Console.WriteLine("Server Online.");
                 }
             }
             catch (SocketException)
@@ -321,7 +324,7 @@ namespace VoiceServer
                 if (online)
                 {
                     data = listenSocket.EndReceive(ar, ref remoteEP);
-                    listenSocket.BeginReceive(new AsyncCallback(OnReceived), null);
+                    packetRecieved.Set();
                 }
                 else return;
                 // Process buffer

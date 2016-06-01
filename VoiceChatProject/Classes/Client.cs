@@ -40,6 +40,7 @@ namespace Voicer
         protected IPAddress serverAddress;
         protected IPEndPoint endPoint;
         protected Thread listenThread;
+        protected AutoResetEvent packetRecieved;
         // Stops the user list from updating while it's already being updated on a different thread.
         private bool blockUserUpdatePacket = false;
 
@@ -57,12 +58,12 @@ namespace Voicer
         {
             get
             {
-                return this.isConnected;
+                return isConnected;
             }
 
             private set
             {
-                this.isConnected = value;
+                isConnected = value;
             }
         }
 
@@ -106,7 +107,7 @@ namespace Voicer
             ChangeStatus("Connecting...");
             try
             {
-                this.serverAddress = IPAddress.Parse(serverIP);
+                serverAddress = IPAddress.Parse(serverIP);
                 endPoint = new IPEndPoint(serverAddress, ServerPort);
                 // Remove any unwanted characters that could disrupt the functions of the server.
                 nickname = Data.MakeSafe(nick);
@@ -126,6 +127,7 @@ namespace Voicer
                 // Start Listening
                 listenThread = new Thread(new ThreadStart(StartListen));
                 listenThread.IsBackground = true;
+                packetRecieved = new AutoResetEvent(true);
                 Console.WriteLine("Starting listen thread...");
                 listenThread.Start();
 
@@ -202,13 +204,13 @@ namespace Voicer
 
         public void SendChatMessage(string message)
         {
-            byte[] buffer = BitConverter.GetBytes(this.clientID).Concat(BitConverter.GetBytes(this.channelID)).Concat(Encoding.ASCII.GetBytes(message)).ToArray();
+            byte[] buffer = BitConverter.GetBytes(this.clientID).Concat(BitConverter.GetBytes(channelID)).Concat(Encoding.ASCII.GetBytes(message)).ToArray();
             SendMessage(MessageHandler.Messages.CHAT, buffer);
         }
 
         public void SendVoiceMessage(byte[] data)
         {
-            byte[] buffer = BitConverter.GetBytes(this.clientID).Concat(BitConverter.GetBytes(this.channelID)).Concat(data).ToArray();
+            byte[] buffer = BitConverter.GetBytes(clientID).Concat(BitConverter.GetBytes(channelID)).Concat(data).ToArray();
             SendMessage(MessageHandler.Messages.VOICE ,buffer);
         }
 
@@ -218,8 +220,9 @@ namespace Voicer
             listenSocket = new UdpClient(new IPEndPoint(IPAddress.Any, 9998));
             try
             {
-                if (isConnected)
+                while (isConnected)
                 {
+                    packetRecieved.WaitOne();
                     listenSocket.BeginReceive(new AsyncCallback(OnReceived), null);
                 }
             }
@@ -241,12 +244,12 @@ namespace Voicer
                 {
                     data = listenSocket.EndReceive(ar, ref remoteEP);
                     packetCount++;
-                    listenSocket.BeginReceive(new AsyncCallback(OnReceived), null);
+                    packetRecieved.Set();
                 }
                 else return;
                 // Process buffer
 
-                byte[] cleanMessage = data.Skip(2).ToArray<byte>();
+                byte[] cleanMessage = data.Skip(2).ToArray();
 
                 dataHandler.HandleMessage((MessageHandler.Messages)BitConverter.ToInt16(data, 0), new object[] { cleanMessage });
             }
@@ -265,7 +268,7 @@ namespace Voicer
 
         public bool HandleSwitchChannelPacket(byte[] data)
         {
-            this.channelID = BitConverter.ToInt16(data, 0);
+            channelID = BitConverter.ToInt16(data, 0);
 
             ChatMessageRecieved("--- Now speaking on channel " + this.channelID.ToString());
             return true;
@@ -280,14 +283,14 @@ namespace Voicer
         public bool HandleShutdownPacket(byte[] data)
         {
             Console.WriteLine("Server Closed: " + Encoding.ASCII.GetString(data));
-            this.Disconnect();
+            Disconnect();
             return true;
         }
 
         public bool HandleConnectedPacket(byte[] data)
         {
-            this.clientID = BitConverter.ToInt16(data, 0);
-            this.channelID = 1;// BitConverter.ToInt16(data, 2);
+            clientID = BitConverter.ToInt16(data, 0);
+            channelID = 1;// BitConverter.ToInt16(data, 2);
             Console.WriteLine("Connected - " + endPoint.ToString());
             ChangeStatus("Connected to " + endPoint.ToString());
 
@@ -331,7 +334,7 @@ namespace Voicer
                 }
             }
 
-            OnChatMessageRecieved(senderName, Encoding.ASCII.GetString(data.Skip(4).ToArray<byte>()));
+            OnChatMessageRecieved(senderName, Encoding.ASCII.GetString(data.Skip(4).ToArray()));
 
             return true;
         }
@@ -483,13 +486,12 @@ namespace Voicer
 
         public void ChangeStatus(string status)
         {
-            if (StatusChanged != null)
-                StatusChanged(status);
+            StatusChanged?.Invoke(status);
         }
 
         public void SendServerMessage(string message)
         {
-            if (this.isAdmin)
+            if (isAdmin)
             {
                 byte[] buffer = BitConverter.GetBytes(this.clientID).Concat(Encoding.ASCII.GetBytes(message)).ToArray();
                 SendMessage(MessageHandler.Messages.SERVERMESSAGE, buffer);

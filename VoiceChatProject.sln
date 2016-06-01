@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual C# Express 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Voicer", "VoiceChatProject\Voicer.csproj", "{07B9284F-F73A-4F96-BE0B-C71D3C224EBE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VoicerServer", "VoiceServer\VoicerServer.csproj", "{5DDEC841-7C73-4CE1-875C-4A9B81C27E44}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Common\Common.csproj", "{31A41AE8-53F9-44BE-9213-2FC64D78DB92}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{07B9284F-F73A-4F96-BE0B-C71D3C224EBE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{07B9284F-F73A-4F96-BE0B-C71D3C224EBE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{07B9284F-F73A-4F96-BE0B-C71D3C224EBE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{07B9284F-F73A-4F96-BE0B-C71D3C224EBE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5DDEC841-7C73-4CE1-875C-4A9B81C27E44}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5DDEC841-7C73-4CE1-875C-4A9B81C27E44}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5DDEC841-7C73-4CE1-875C-4A9B81C27E44}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5DDEC841-7C73-4CE1-875C-4A9B81C27E44}.Release|Any CPU.Build.0 = Release|Any CPU
+		{31A41AE8-53F9-44BE-9213-2FC64D78DB92}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{31A41AE8-53F9-44BE-9213-2FC64D78DB92}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{31A41AE8-53F9-44BE-9213-2FC64D78DB92}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{31A41AE8-53F9-44BE-9213-2FC64D78DB92}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

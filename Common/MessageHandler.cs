@@ -37,7 +37,7 @@ namespace Voicer.Common
             SETADMIN,
         };
 
-        public enum ChannelCommands:short
+        public enum ChannelCommands : short
         {
             DELETE,
             RENAME,
@@ -47,7 +47,7 @@ namespace Voicer.Common
         public void AddMessageHandler(Messages messageEnum, Delegate function)
         {
             short messageKey = (short)messageEnum;
-            this.AddHandler(messageKey, function);
+            AddHandler(messageKey, function);
         }
 
         public void AddHandler(short messageKey, Delegate function)

@@ -433,7 +433,7 @@ namespace Voicer
                     serverKeys = new List<string>();
                 }
 
-                    int serverArrayIndex = serverKeys.IndexOf(serverKey);
+                int serverArrayIndex = serverKeys.IndexOf(serverKey);
                     if (serverArrayIndex < 0)
                         serverKeys.Add(serverKey);
 
@@ -468,7 +468,7 @@ namespace Voicer
         public void RequetKey()
         {
             Console.WriteLine("Requesting new key from server...");
-            this.SendMessage(MessageHandler.Messages.NEWKEY, BitConverter.GetBytes(this.clientID));
+            SendMessage(MessageHandler.Messages.NEWKEY, BitConverter.GetBytes(this.clientID));
         }
 
         public User FindClient(short id)

@@ -138,7 +138,7 @@ namespace VoiceServer
         {
             short senderId = BitConverter.ToInt16(data, 0);
             short channelId = BitConverter.ToInt16(data, 2);
-            SendToClients(channelId, MessageHandler.Messages.VOICE, data);//, senderId);
+            SendToClients(channelId, MessageHandler.Messages.VOICE, data, senderId);
         }
 
         protected void HandleChatPacket(byte[] data, IPEndPoint endP)

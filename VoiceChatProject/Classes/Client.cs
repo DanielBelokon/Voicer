@@ -7,7 +7,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.IO;
-using Voicer.Common;
+using Voicer.Common.Data;
 
 namespace Voicer
 {
@@ -83,17 +83,17 @@ namespace Voicer
             dataHandler = new MessageHandler();
 
             // Add message handlers to all packet types.
-            dataHandler.AddMessageHandler(MessageHandler.Messages.CHAT, new Func<byte[], bool>(HandleChatPacket));
-            dataHandler.AddMessageHandler(MessageHandler.Messages.GETUSERS, new Func<byte[], bool>(HandleUserListPacket));
-            dataHandler.AddMessageHandler(MessageHandler.Messages.KEEPALIVE, new Func<byte[], bool>(HandleKeepAlivePacket));
-            dataHandler.AddMessageHandler(MessageHandler.Messages.SHUTDOWN, new Func<byte[], bool>(HandleShutdownPacket));
-            dataHandler.AddMessageHandler(MessageHandler.Messages.VOICE, new Func<byte[], bool>(HandleSoundPacket));
-            dataHandler.AddMessageHandler(MessageHandler.Messages.CONNECTED, new Func<byte[], bool>(HandleConnectedPacket));
-            dataHandler.AddMessageHandler(MessageHandler.Messages.GETKEY, new Func<byte[], bool>(HandleGetKeyPacket));
-            dataHandler.AddMessageHandler(MessageHandler.Messages.SETKEY, new Func<byte[], bool>(HandleSetKeyPacket));
-            dataHandler.AddMessageHandler(MessageHandler.Messages.JOINCHANNEL, new Func<byte[], bool>(HandleSwitchChannelPacket));
-            dataHandler.AddMessageHandler(MessageHandler.Messages.SETADMIN, new Func<byte[], bool>(HandleSetAdminPacket));
-            dataHandler.AddMessageHandler(MessageHandler.Messages.SERVERMESSAGE, new Func<byte[], bool>(HandleServerMessagePacket));
+            dataHandler.AddMessageHandler(MessageHandler.Messages.CHAT, new Action<byte[]>(HandleChatPacket));
+            dataHandler.AddMessageHandler(MessageHandler.Messages.GETUSERS, new Action<byte[]>(HandleUserListPacket));
+            dataHandler.AddMessageHandler(MessageHandler.Messages.KEEPALIVE, new Action<byte[]>(HandleKeepAlivePacket));
+            dataHandler.AddMessageHandler(MessageHandler.Messages.SHUTDOWN, new Action<byte[]>(HandleShutdownPacket));
+            dataHandler.AddMessageHandler(MessageHandler.Messages.VOICE, new Action<byte[]>(HandleSoundPacket));
+            dataHandler.AddMessageHandler(MessageHandler.Messages.CONNECTED, new Action<byte[]>(HandleConnectedPacket));
+            dataHandler.AddMessageHandler(MessageHandler.Messages.GETKEY, new Action<byte[]>(HandleGetKeyPacket));
+            dataHandler.AddMessageHandler(MessageHandler.Messages.SETKEY, new Action<byte[]>(HandleSetKeyPacket));
+            dataHandler.AddMessageHandler(MessageHandler.Messages.JOINCHANNEL, new Action<byte[]>(HandleSwitchChannelPacket));
+            dataHandler.AddMessageHandler(MessageHandler.Messages.SETADMIN, new Action<byte[]>(HandleSetAdminPacket));
+            dataHandler.AddMessageHandler(MessageHandler.Messages.SERVERMESSAGE, new Action<byte[]>(HandleServerMessagePacket));
         }
 
         public int Connect(string serverIP, string nick)
@@ -266,28 +266,25 @@ namespace Voicer
 
         #region packet handeling
 
-        public bool HandleSwitchChannelPacket(byte[] data)
+        public void HandleSwitchChannelPacket(byte[] data)
         {
             channelID = BitConverter.ToInt16(data, 0);
 
             ChatMessageRecieved("--- Now speaking on channel " + this.channelID.ToString());
-            return true;
         }
 
-        public bool HandleKeepAlivePacket(byte[] data)
+        public void HandleKeepAlivePacket(byte[] data)
         {
             SendMessage(MessageHandler.Messages.KEEPALIVE, BitConverter.GetBytes(this.clientID));
-            return true;
         }
 
-        public bool HandleShutdownPacket(byte[] data)
+        public void HandleShutdownPacket(byte[] data)
         {
             Console.WriteLine("Server Closed: " + Encoding.ASCII.GetString(data));
             Disconnect();
-            return true;
         }
 
-        public bool HandleConnectedPacket(byte[] data)
+        public void HandleConnectedPacket(byte[] data)
         {
             clientID = BitConverter.ToInt16(data, 0);
             channelID = 1;// BitConverter.ToInt16(data, 2);
@@ -295,27 +292,25 @@ namespace Voicer
             ChangeStatus("Connected to " + endPoint.ToString());
 
             SendMessage(MessageHandler.Messages.CONNECTED, BitConverter.GetBytes(this.clientID));
-            return true;
         }
 
-        public bool HandleSoundPacket(byte[] data)
+        public void HandleSoundPacket(byte[] data)
         {
             short clientId = BitConverter.ToInt16(data, 0);
             short channelId = BitConverter.ToInt16(data, 2);
 
             byte[] soundData = data.Skip(4).ToArray();
             if (this.channelID != channelId)
-                return false;
+                return;
 
             User user = FindClient(clientId);
             if (user.ID != -1)
             {
                 user.clientAudio.AddSound(soundData);
             }
-            return true;
         }
 
-        public bool HandleChatPacket(byte[] data)
+        public void HandleChatPacket(byte[] data)
         {
             short clientId = BitConverter.ToInt16(data, 0);
             string senderName = "";
@@ -335,12 +330,10 @@ namespace Voicer
             }
 
             OnChatMessageRecieved(senderName, Encoding.ASCII.GetString(data.Skip(4).ToArray()));
-
-            return true;
         }
 
         // Update the UI with a new user list.
-        public bool HandleUserListPacket(byte[] data)
+        public void HandleUserListPacket(byte[] data)
         {
             while (blockUserUpdatePacket)
             {
@@ -357,7 +350,7 @@ namespace Voicer
                 if (users == "")
                 {
                     UserListUpdated(new List<Channel>(), true);
-                    return true;
+                    return;
                 }
 
                 char[] channelSplitters = { '|' };
@@ -383,10 +376,9 @@ namespace Voicer
                 blockUserUpdatePacket = false;
                 UserListUpdated(channelList, false);
             }
-            return true;
         }
 
-        public bool HandleGetKeyPacket(byte[] data)
+        public void HandleGetKeyPacket(byte[] data)
         {
             serverKey = Encoding.ASCII.GetString(data);
             try
@@ -396,28 +388,25 @@ namespace Voicer
                 if (serverArrayIndex < 0)
                 {
                     RequetKey();
-                    return false;
+                    return;
                 }
 
                 clientKey = serverKeys[serverKeys.IndexOf(serverKey) + 1];
                 this.SendMessage(MessageHandler.Messages.SETKEY, BitConverter.GetBytes(this.clientID).Concat(Encoding.ASCII.GetBytes(clientKey)).ToArray());
                 Console.WriteLine("Using Client Key: " + clientKey);
                 
-                return true;
             }
             catch (ArgumentOutOfRangeException)
             {
                 RequetKey();
-                return false;
             }
             catch (FileNotFoundException)
             {
                 RequetKey();
-                return false;
             }
         }
 
-        public bool HandleSetKeyPacket(byte[] data)
+        public void HandleSetKeyPacket(byte[] data)
         {
             clientKey = Encoding.ASCII.GetString(data);
             if (clientKey != "")
@@ -446,21 +435,18 @@ namespace Voicer
                 Console.WriteLine("Not matching client key on server, requesting new one");
                 RequetKey();
             }
-            return true;
         }
 
-        public bool HandleSetAdminPacket(byte[] data)
+        public void HandleSetAdminPacket(byte[] data)
         {
             this.isAdmin = BitConverter.ToBoolean(data, 0);
             Console.WriteLine("IsAdmin = " + this.isAdmin);
-            return true;
         }
 
-        public bool HandleServerMessagePacket(byte[] data)
+        public void HandleServerMessagePacket(byte[] data)
         {
             if(ServerMessageRecieved != null)
                 ServerMessageRecieved(Encoding.ASCII.GetString(data.Skip(2).ToArray()));
-            return true;
         }
 
         #endregion packet handeling

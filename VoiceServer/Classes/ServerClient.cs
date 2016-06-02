@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Threading;
 using System.Net;
 using System.Net.Sockets;
-using Voicer.Common;
+using Voicer.Common.Data;
 
 namespace VoiceServer
 {

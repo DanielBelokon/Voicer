@@ -5,7 +5,7 @@ using System.Text;
 using System.Net.Sockets;
 using System.Net;
 using System.Threading;
-using Voicer.Common;
+using Voicer.Common.Data;
 using System.IO;
 
 namespace VoiceServer

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Voicer.Common
+namespace Voicer.Common.Data
 {
     public static class Data
     {

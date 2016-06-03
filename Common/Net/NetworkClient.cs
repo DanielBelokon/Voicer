@@ -28,8 +28,6 @@ namespace Voicer.Common.Net
         private Socket senderSocket;
         private Thread tickThread;
 
-        private int packetCount;
-
         private int tickInterval = 5;
         private bool bTick;
         private Thread listenThread;
@@ -191,7 +189,7 @@ namespace Voicer.Common.Net
 
         public virtual void MessageSent(object sender, SocketAsyncEventArgs e)
         {
-            
+            e.Dispose();
         }
 
         public virtual void MessageSending(Packet.Messages message)

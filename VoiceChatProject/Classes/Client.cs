@@ -131,7 +131,6 @@ namespace Voicer
         public override void Disconnecting()
         {
             string serverString = serverAddress.ToString();
-            serverAddress = null;
             endPoint = null;
             nickname = null;
             UserListUpdated(new List<Channel>(), true);
@@ -235,7 +234,7 @@ namespace Voicer
             blockUserUpdatePacket = true;
             string users = "";
 
-            if (packet != null)
+            if (packet != null && packet.Data != null)
                 users = Encoding.ASCII.GetString(packet.Data);
 
             if (UserListUpdated != null)

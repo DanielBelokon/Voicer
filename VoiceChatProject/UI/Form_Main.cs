@@ -175,8 +175,8 @@ namespace Voicer.UI
         public void ItemList_Clicked(object sender, EventArgs e)
         {
             ListItem item = (ListItem)sender;
-            if(item.channel != null)
-                localClient.JoinChannel(item.channel.ID);
+            if(item.channelID != 0)
+                localClient.JoinChannel(item.channelID);
         }
 
         private void Voicer_Main_FormClosing(object sender, FormClosingEventArgs e)

@@ -56,12 +56,12 @@ namespace Voicer.UI
             
             foreach (Channel channel in channelList.ToList())
             {
-                AddItem(channel.name, i, 0, Color.Gainsboro).channel = channel;
+                AddItem(channel.name, i, 0, Color.Gainsboro).channelID = channel.ID;
                 i++;
 
                 foreach (User curUser in channel.users)
                 {
-                    AddItem(curUser.nickname, i, 1, Color.GhostWhite).user = curUser;
+                    AddItem(curUser.nickname, i, 1, Color.GhostWhite).userID = curUser.ID;
                     i++;
                 }
             }

@@ -1,9 +1,10 @@
-﻿using Voicer.Sound;
+﻿using System;
+using Voicer.Sound;
 
 // Represents the users present on the server (Remote clients)
 namespace Voicer
 {
-    public struct User
+    public class User : IDisposable
     {
         public string nickname;
         public short ID;
@@ -15,9 +16,17 @@ namespace Voicer
         {
             nickname = nick;
             this.ID = ID;
+            if (ID > 0)
+            {
+                clientAudio = new Audio();
+                clientAudio.StartSound();
+            }
+        }
 
-            clientAudio = new Audio();
-            clientAudio.StartSound();
+        public void Dispose()
+        {
+            if (clientAudio != null)
+                clientAudio.StopSound();
         }
     }
 }

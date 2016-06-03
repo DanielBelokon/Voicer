@@ -15,8 +15,8 @@ namespace Voicer.UI
 
         public Color defaultColor;
 
-        public Channel channel;
-        public User user;
+        public short channelID;
+        public short userID;
 
         private string text;
         public int id;
@@ -36,6 +36,8 @@ namespace Voicer.UI
             TextLabel.Text = "";
             defaultColor = color;
             currentColor = color;
+            channelID = 0;
+            userID = 0;
             this.BackColor = defaultColor;
         }
 

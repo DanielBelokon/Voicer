@@ -8,10 +8,11 @@ using System.Net.Sockets;
 using System.Threading;
 using System.IO;
 using Voicer.Common.Data;
+using Voicer.Common.Net;
 
 namespace Voicer
 {
-    public class Client
+    public class Client : NetworkClient
     {
 
         public delegate void UserListUpdateDelegate(List<Channel> channels, bool ClearList);
@@ -36,39 +37,13 @@ namespace Voicer
 
         const int ServerPort = 9999;
 
-        // Server-related Members
-        protected IPAddress serverAddress;
-        protected IPEndPoint endPoint;
-        protected Thread listenThread;
-        protected AutoResetEvent packetRecieved;
         // Stops the user list from updating while it's already being updated on a different thread.
         private bool blockUserUpdatePacket = false;
 
         // A thread used to check the amount of packets recieved in the last x seconds, to make sure there is a stable connection.
-        protected Thread connectionTimer;
         protected int packetCount;
 
-        // Socket for sending
-        protected Socket socket;
-        // Listening UDP client
-        protected UdpClient listenSocket;
-
-        protected bool isConnected = false;
-        public bool IsConnected
-        {
-            get
-            {
-                return isConnected;
-            }
-
-            private set
-            {
-                isConnected = value;
-            }
-        }
-
         // A Message handler for handling the packets and invoking the needed functions to proccess them.
-        MessageHandler dataHandler;
 
         // The unique 16 character key of the server.
         private string serverKey;
@@ -76,29 +51,28 @@ namespace Voicer
         private string clientKey;
 
         private bool isAdmin;
+        private IPEndPoint endPoint;
+        private IPAddress serverAddress;
 
-        
-        public Client()
+        public Client() : base(9998, ServerPort)
         {
-            dataHandler = new MessageHandler();
-
             // Add message handlers to all packet types.
-            dataHandler.AddMessageHandler(MessageHandler.Messages.CHAT, new Action<byte[]>(HandleChatPacket));
-            dataHandler.AddMessageHandler(MessageHandler.Messages.GETUSERS, new Action<byte[]>(HandleUserListPacket));
-            dataHandler.AddMessageHandler(MessageHandler.Messages.KEEPALIVE, new Action<byte[]>(HandleKeepAlivePacket));
-            dataHandler.AddMessageHandler(MessageHandler.Messages.SHUTDOWN, new Action<byte[]>(HandleShutdownPacket));
-            dataHandler.AddMessageHandler(MessageHandler.Messages.VOICE, new Action<byte[]>(HandleSoundPacket));
-            dataHandler.AddMessageHandler(MessageHandler.Messages.CONNECTED, new Action<byte[]>(HandleConnectedPacket));
-            dataHandler.AddMessageHandler(MessageHandler.Messages.GETKEY, new Action<byte[]>(HandleGetKeyPacket));
-            dataHandler.AddMessageHandler(MessageHandler.Messages.SETKEY, new Action<byte[]>(HandleSetKeyPacket));
-            dataHandler.AddMessageHandler(MessageHandler.Messages.JOINCHANNEL, new Action<byte[]>(HandleSwitchChannelPacket));
-            dataHandler.AddMessageHandler(MessageHandler.Messages.SETADMIN, new Action<byte[]>(HandleSetAdminPacket));
-            dataHandler.AddMessageHandler(MessageHandler.Messages.SERVERMESSAGE, new Action<byte[]>(HandleServerMessagePacket));
+            packetHandler.AddPacketHandler(Packet.Messages.CHAT, new Action<Packet>(HandleChatPacket));
+            packetHandler.AddPacketHandler(Packet.Messages.GETUSERS, new Action<Packet>(HandleUserListPacket));
+            packetHandler.AddPacketHandler(Packet.Messages.KEEPALIVE, new Action<Packet>(HandleKeepAlivePacket));
+            packetHandler.AddPacketHandler(Packet.Messages.SHUTDOWN, new Action<Packet>(HandleShutdownPacket));
+            packetHandler.AddPacketHandler(Packet.Messages.VOICE, new Action<Packet>(HandleSoundPacket));
+            packetHandler.AddPacketHandler(Packet.Messages.CONNECTED, new Action<Packet>(HandleConnectedPacket));
+            packetHandler.AddPacketHandler(Packet.Messages.GETKEY, new Action<Packet>(HandleGetKeyPacket));
+            packetHandler.AddPacketHandler(Packet.Messages.SETKEY, new Action<Packet>(HandleSetKeyPacket));
+            packetHandler.AddPacketHandler(Packet.Messages.JOINCHANNEL, new Action<Packet>(HandleSwitchChannelPacket));
+            packetHandler.AddPacketHandler(Packet.Messages.SETADMIN, new Action<Packet>(HandleSetAdminPacket));
+            packetHandler.AddPacketHandler(Packet.Messages.SERVERMESSAGE, new Action<Packet>(HandleServerMessagePacket));
         }
 
         public int Connect(string serverIP, string nick)
         {
-            if (isConnected)
+            if (IsConnected)
             {
                 Disconnect();
                 Thread.Sleep(100);
@@ -109,31 +83,20 @@ namespace Voicer
             {
                 serverAddress = IPAddress.Parse(serverIP);
                 endPoint = new IPEndPoint(serverAddress, ServerPort);
+                Console.WriteLine("Starting up sockets...");
+                Connect(endPoint);
+                StartListen();
                 // Remove any unwanted characters that could disrupt the functions of the server.
                 nickname = Data.MakeSafe(nick);
 
-                // Start counting the amount of packets recieved every few seconds to determin if there is a stable connection.
-                connectionTimer = new Thread(new ThreadStart(CheckTimeout));
-                connectionTimer.Start();
+                Console.WriteLine("Initializing tick...");
+                StartTick(15);
 
                 byte[] message = Encoding.ASCII.GetBytes(nickname);
-                socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-
-                socket.Connect(endPoint);
-
-
-                isConnected = true;
-
-                // Start Listening
-                listenThread = new Thread(new ThreadStart(StartListen));
-                listenThread.IsBackground = true;
-                packetRecieved = new AutoResetEvent(true);
-                Console.WriteLine("Starting listen thread...");
-                listenThread.Start();
 
                 Console.WriteLine("Initializing connection...");
                 // Send message informing the server the client is connecting, including the client's nickname.
-                SendMessage(MessageHandler.Messages.CONNECT, message);
+                Send(new Packet(Packet.Messages.CONNECT, message));
                 return 0;
             }
 
@@ -149,158 +112,88 @@ namespace Voicer
         }
 
         // Check if client still recieving packets
-        private void CheckTimeout()
+        public override void Tick()
         {
-            do
+            if (packetCount == 0)
             {
-                Thread.Sleep(5000);
-                if (packetCount == 0)
-                {
-                    Disconnect();
-                }
+                Disconnect();
+            }
 
-                packetCount = 0;
-
-            } while (isConnected);
+            packetCount = 0;
         }
 
-        public void Disconnect()
+        public override void PacketRecieved(Packet packet)
+        {
+            packetCount++;
+            Send(new Packet(Packet.Messages.RECIEVED, BitConverter.GetBytes((short)packet.Type)));
+        }
+
+        public override void Disconnecting()
         {
             string serverString = serverAddress.ToString();
             serverAddress = null;
             endPoint = null;
             nickname = null;
-            HandleUserListPacket(null);
+            UserListUpdated(new List<Channel>(), true);
             blockUserUpdatePacket = false;
             ChangeStatus("Offline");
 
-            if (isConnected)
+            if (IsConnected)
             {
-                SendMessage(MessageHandler.Messages.DISCONNECT, BitConverter.GetBytes(this.clientID));
-                listenSocket.Close();
-
+                Send(new Packet(Packet.Messages.DISCONNECT, BitConverter.GetBytes(clientID)));
                 Console.WriteLine("Disconnected from " + serverString);
-                isConnected = false;
-                listenThread.Abort();
-                connectionTimer.Abort();
             }
-        }
-
-        public void SendMessage(MessageHandler.Messages message, byte[] data = null)
-        {
-            if (!isConnected)
-                return;
-
-            byte[] buffer = BitConverter.GetBytes((short)message);
-
-            if (data != null)
-                buffer = buffer.Concat(data).ToArray<byte>();
-
-            SocketAsyncEventArgs e = new SocketAsyncEventArgs();
-            e.SetBuffer(buffer, 0, buffer.Length);
-
-            socket.SendAsync(e);
         }
 
         public void SendChatMessage(string message)
         {
             byte[] buffer = BitConverter.GetBytes(this.clientID).Concat(BitConverter.GetBytes(channelID)).Concat(Encoding.ASCII.GetBytes(message)).ToArray();
-            SendMessage(MessageHandler.Messages.CHAT, buffer);
+            Send(new Packet(Packet.Messages.CHAT, buffer));
         }
 
         public void SendVoiceMessage(byte[] data)
         {
             byte[] buffer = BitConverter.GetBytes(clientID).Concat(BitConverter.GetBytes(channelID)).Concat(data).ToArray();
-            SendMessage(MessageHandler.Messages.VOICE ,buffer);
-        }
-
-        // Recieve data from server
-        public void StartListen()
-        {
-            listenSocket = new UdpClient(new IPEndPoint(IPAddress.Any, 9998));
-            try
-            {
-                while (isConnected)
-                {
-                    packetRecieved.WaitOne();
-                    listenSocket.BeginReceive(new AsyncCallback(OnReceived), null);
-                }
-            }
-            catch (SocketException)
-            {
-                Disconnect();
-            }
-        }
-
-        public void OnReceived(IAsyncResult ar)
-        {
-            IPEndPoint remoteEP = null;
-
-            try
-            {
-                byte[] data;
-
-                if (isConnected)
-                {
-                    data = listenSocket.EndReceive(ar, ref remoteEP);
-                    packetCount++;
-                    packetRecieved.Set();
-                }
-                else return;
-                // Process buffer
-
-                byte[] cleanMessage = data.Skip(2).ToArray();
-
-                dataHandler.HandleMessage((MessageHandler.Messages)BitConverter.ToInt16(data, 0), new object[] { cleanMessage });
-            }
-
-            catch (SocketException)
-            {
-                Disconnect();
-            }
-
-            catch (ObjectDisposedException)
-            {
-            }
+            Send(new Packet(Packet.Messages.VOICE, buffer));
         }
 
         #region packet handeling
 
-        public void HandleSwitchChannelPacket(byte[] data)
+        public void HandleSwitchChannelPacket(Packet packet)
         {
-            channelID = BitConverter.ToInt16(data, 0);
+            channelID = BitConverter.ToInt16(packet.Data, 0);
 
             ChatMessageRecieved("--- Now speaking on channel " + this.channelID.ToString());
         }
 
-        public void HandleKeepAlivePacket(byte[] data)
+        public void HandleKeepAlivePacket(Packet packet)
         {
-            SendMessage(MessageHandler.Messages.KEEPALIVE, BitConverter.GetBytes(this.clientID));
+            Send(new Packet(Packet.Messages.KEEPALIVE, BitConverter.GetBytes(clientID)));
         }
 
-        public void HandleShutdownPacket(byte[] data)
+        public void HandleShutdownPacket(Packet packet)
         {
-            Console.WriteLine("Server Closed: " + Encoding.ASCII.GetString(data));
+            Console.WriteLine("Server Closed: " + Encoding.ASCII.GetString(packet.Data));
             Disconnect();
         }
 
-        public void HandleConnectedPacket(byte[] data)
+        public void HandleConnectedPacket(Packet packet)
         {
-            clientID = BitConverter.ToInt16(data, 0);
+            clientID = BitConverter.ToInt16(packet.Data, 0);
             channelID = 1;// BitConverter.ToInt16(data, 2);
             Console.WriteLine("Connected - " + endPoint.ToString());
             ChangeStatus("Connected to " + endPoint.ToString());
 
-            SendMessage(MessageHandler.Messages.CONNECTED, BitConverter.GetBytes(this.clientID));
+            Send(new Packet(Packet.Messages.CONNECTED, BitConverter.GetBytes(clientID)));
         }
 
-        public void HandleSoundPacket(byte[] data)
+        public void HandleSoundPacket(Packet packet)
         {
-            short clientId = BitConverter.ToInt16(data, 0);
-            short channelId = BitConverter.ToInt16(data, 2);
+            short clientId = BitConverter.ToInt16(packet.Data, 0);
+            short channelId = BitConverter.ToInt16(packet.Data, 2);
 
-            byte[] soundData = data.Skip(4).ToArray();
-            if (this.channelID != channelId)
+            byte[] soundData = packet.Data.Skip(4).ToArray();
+            if (channelID != channelId)
                 return;
 
             User user = FindClient(clientId);
@@ -310,9 +203,9 @@ namespace Voicer
             }
         }
 
-        public void HandleChatPacket(byte[] data)
+        public void HandleChatPacket(Packet packet)
         {
-            short clientId = BitConverter.ToInt16(data, 0);
+            short clientId = BitConverter.ToInt16(packet.Data, 0);
             string senderName = "";
 
             if (clientId == 0)
@@ -329,11 +222,11 @@ namespace Voicer
                 }
             }
 
-            OnChatMessageRecieved(senderName, Encoding.ASCII.GetString(data.Skip(4).ToArray()));
+            OnChatMessageRecieved(senderName, Encoding.ASCII.GetString(packet.Data.Skip(4).ToArray()));
         }
 
         // Update the UI with a new user list.
-        public void HandleUserListPacket(byte[] data)
+        public void HandleUserListPacket(Packet packet)
         {
             while (blockUserUpdatePacket)
             {
@@ -342,8 +235,8 @@ namespace Voicer
             blockUserUpdatePacket = true;
             string users = "";
 
-            if (data != null)
-                users = Encoding.ASCII.GetString(data);
+            if (packet != null)
+                users = Encoding.ASCII.GetString(packet.Data);
 
             if (UserListUpdated != null)
             {
@@ -378,9 +271,9 @@ namespace Voicer
             }
         }
 
-        public void HandleGetKeyPacket(byte[] data)
+        public void HandleGetKeyPacket(Packet packet)
         {
-            serverKey = Encoding.ASCII.GetString(data);
+            serverKey = Encoding.ASCII.GetString(packet.Data);
             try
             {
                 List<string> serverKeys = File.ReadAllLines(Environment.CurrentDirectory + "/client.txt").ToList();
@@ -392,9 +285,8 @@ namespace Voicer
                 }
 
                 clientKey = serverKeys[serverKeys.IndexOf(serverKey) + 1];
-                this.SendMessage(MessageHandler.Messages.SETKEY, BitConverter.GetBytes(this.clientID).Concat(Encoding.ASCII.GetBytes(clientKey)).ToArray());
-                Console.WriteLine("Using Client Key: " + clientKey);
-                
+                Send(new Packet(Packet.Messages.SETKEY, BitConverter.GetBytes(clientID).Concat(Encoding.ASCII.GetBytes(clientKey)).ToArray()));
+                Console.WriteLine("Sending Client Key: " + clientKey);
             }
             catch (ArgumentOutOfRangeException)
             {
@@ -406,9 +298,9 @@ namespace Voicer
             }
         }
 
-        public void HandleSetKeyPacket(byte[] data)
+        public void HandleSetKeyPacket(Packet packet)
         {
-            clientKey = Encoding.ASCII.GetString(data);
+            clientKey = Encoding.ASCII.GetString(packet.Data);
             if (clientKey != "")
             {
                 List<string> serverKeys;
@@ -426,7 +318,8 @@ namespace Voicer
                     if (serverArrayIndex < 0)
                         serverKeys.Add(serverKey);
 
-                    serverKeys.Insert(serverKeys.IndexOf(serverKey) + 1, clientKey);
+                Console.WriteLine("Client key recieved from server: " + clientKey);
+                serverKeys.Insert(serverKeys.IndexOf(serverKey) + 1, clientKey);
 
                 File.WriteAllLines(Environment.CurrentDirectory + "/client.txt", serverKeys);
             }
@@ -437,16 +330,16 @@ namespace Voicer
             }
         }
 
-        public void HandleSetAdminPacket(byte[] data)
+        public void HandleSetAdminPacket(Packet packet)
         {
-            this.isAdmin = BitConverter.ToBoolean(data, 0);
+            this.isAdmin = BitConverter.ToBoolean(packet.Data, 0);
             Console.WriteLine("IsAdmin = " + this.isAdmin);
         }
 
-        public void HandleServerMessagePacket(byte[] data)
+        public void HandleServerMessagePacket(Packet packet)
         {
             if(ServerMessageRecieved != null)
-                ServerMessageRecieved(Encoding.ASCII.GetString(data.Skip(2).ToArray()));
+                ServerMessageRecieved(Encoding.ASCII.GetString(packet.Data.Skip(2).ToArray()));
         }
 
         #endregion packet handeling
@@ -454,7 +347,7 @@ namespace Voicer
         public void RequetKey()
         {
             Console.WriteLine("Requesting new key from server...");
-            SendMessage(MessageHandler.Messages.NEWKEY, BitConverter.GetBytes(this.clientID));
+            Send(new Packet(Packet.Messages.GETKEY, BitConverter.GetBytes(clientID)));
         }
 
         public User FindClient(short id)
@@ -484,7 +377,8 @@ namespace Voicer
 
         public void ChangeStatus(string status)
         {
-            StatusChanged?.Invoke(status);
+            if (StatusChanged != null)
+                StatusChanged.Invoke(status);
         }
 
         public void SendServerMessage(string message)
@@ -492,14 +386,14 @@ namespace Voicer
             if (isAdmin)
             {
                 byte[] buffer = BitConverter.GetBytes(this.clientID).Concat(Encoding.ASCII.GetBytes(message)).ToArray();
-                SendMessage(MessageHandler.Messages.SERVERMESSAGE, buffer);
+                Send(new Packet(Packet.Messages.SERVERMESSAGE, buffer));
             }
         }
 
         public void JoinChannel(short channelID)
         {
-            byte[] buffer = BitConverter.GetBytes(this.clientID).Concat(BitConverter.GetBytes(channelID)).ToArray();
-            SendMessage(MessageHandler.Messages.JOINCHANNEL, buffer);
+            byte[] buffer = BitConverter.GetBytes(clientID).Concat(BitConverter.GetBytes(channelID)).ToArray();
+            Send(new Packet(Packet.Messages.JOINCHANNEL, buffer));
         }
     }
 }

@@ -7,25 +7,22 @@ using System.Threading;
 using System.Net;
 using System.Net.Sockets;
 using Voicer.Common.Data;
+using Voicer.Common.Net;
 
 namespace VoiceServer
 {
-    public class ServerClient
+    public class ServerClient : NetworkClient
     {
         // Max KeepAlive packets a user can miss before he times out & forced to disconnect.
         const int MAX_UPDATES_MISSED = 5;
 
         const int ClientPort = 9998;
 
-        protected Thread thread;
-
         public int UpdatesMissed;
 
         public List<short> PacketsAwaitingConfirmation;
 
-        protected bool isConnected = false;
         protected IPAddress clientAdress;
-        protected Socket socket;
 
         public delegate void ClientDisconnectedDelegate(ServerClient client, ServerClient.ClosingReason reason);
         public event ClientDisconnectedDelegate ClientDisconnected;
@@ -64,52 +61,40 @@ namespace VoiceServer
         public enum ClosingReason { TimedOut, ClientDisconnect, Kicked, Banned };
 
         // Constructor
-        public ServerClient(IPAddress addrs, string name, short id)
+        public ServerClient(IPAddress addrs, string name, short id) : base(9999, ClientPort)
         {
             joinPower = 1;
             this.name = name;
-            this.ID = id;
-            this.clientAdress = addrs;
+            ID = id;
+            clientAdress = addrs;
             UpdatesMissed = 0;
-
+            IPEndPoint clientEndpoint = new IPEndPoint(clientAdress, ClientPort);
             PacketsAwaitingConfirmation = new List<short>();
-
-            thread = new Thread(new ThreadStart(Init));
-            thread.Start();
+            Connect(clientEndpoint);
+            Send(new Packet(Packet.Messages.CONNECTED, BitConverter.GetBytes(ID)));
+            StartTick(4);
         }
 
-        private void Init()
+        public override void Tick()
         {
-            IPEndPoint endP = new IPEndPoint(this.clientAdress, ClientPort);
-            socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            Send(new Packet(Packet.Messages.KEEPALIVE));
+            UpdatesMissed++;
 
-            // Connect the socket to the remote endpoint (the client)
-            socket.Connect(endP);
-            isConnected = true;
-
-            // Inform the client that he has connected so normal communication can start
-            this.Send(MessageHandler.Messages.CONNECTED, BitConverter.GetBytes(this.ID));
-
-            Thread.Sleep(2000);
-
-            while (isConnected)
+            if (UpdatesMissed > MAX_UPDATES_MISSED)
             {
-                Send(MessageHandler.Messages.KEEPALIVE);
-                UpdatesMissed++;
-
-                if (UpdatesMissed > MAX_UPDATES_MISSED)
-                {
-                    Disconnect(ClosingReason.TimedOut);
-                }
-                
-                foreach (short packetId in PacketsAwaitingConfirmation.ToList())
-                {
-                    RequestPacket(packetId);
-                }
-                PacketsAwaitingConfirmation.Clear();
-
-                Thread.Sleep(2000);
+                Disconnect();
             }
+
+            foreach (short packetId in PacketsAwaitingConfirmation.ToList())
+            {
+                RequestPacket(packetId);
+            }
+            PacketsAwaitingConfirmation.Clear();
+        }
+
+        public override void MessageSending(Packet.Messages message)
+        {
+            PacketsAwaitingConfirmation.Add((short)message);
         }
 
         private void RequestPacket(short id)
@@ -118,52 +103,10 @@ namespace VoiceServer
                 ClientRequestPacket(this, id);
         }
 
-        public void Disconnect(ClosingReason reason = ClosingReason.TimedOut)
+        public void Disconnected()
         {
-            if (socket != null)
-            {
-                try
-                {
-                    socket.Close();
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine("an error occured while closing sockets.\n" + e.Message);
-                }
-            }
-
             clientAdress = null;
-            isConnected = false;
-            OnClientDisconnected(reason);
-        }
-
-        // Send packet to client. Return: True on sent, false on error.
-        public bool Send(MessageHandler.Messages message, byte[] data = null)
-        {
-            try
-            {
-                byte[] buffer = BitConverter.GetBytes((short)message);
-                if (data != null)
-                    buffer = buffer.Concat(data).ToArray<byte>();
-
-                SocketAsyncEventArgs e = new SocketAsyncEventArgs();
-
-                e.SetBuffer(buffer, 0, buffer.Length);
-                e.Completed += new EventHandler<SocketAsyncEventArgs>(MessageSent);
-
-                this.PacketsAwaitingConfirmation.Add((short)message);
-                socket.SendAsync(e);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        private void MessageSent(object sender, SocketAsyncEventArgs e)
-        {
-            
+            OnClientDisconnected(ClosingReason.ClientDisconnect);
         }
 
         public override string ToString()
@@ -196,11 +139,11 @@ namespace VoiceServer
         public void SetAdmin(bool state)
         {
             if (state)
-                Administration.SetAdmin(this.key);
-            else Administration.RemoveAdmin(this.key);
+                Administration.SetAdmin(key);
+            else Administration.RemoveAdmin(key);
 
-            this.Send(MessageHandler.Messages.SETADMIN, BitConverter.GetBytes(state));
-            this.admin = true;
+            Send(new Packet(Packet.Messages.SETADMIN, BitConverter.GetBytes(state)));
+            admin = true;
         }
 
         public void SetKey(string key)
@@ -208,25 +151,24 @@ namespace VoiceServer
             if (Administration.KeyExists(key))
             {
                 this.key = key;
-                this.admin = Administration.IsAdmin(key);
-                this.Send(MessageHandler.Messages.SETADMIN, BitConverter.GetBytes(this.admin));
+                admin = Administration.IsAdmin(key);
+                Send(new Packet(Packet.Messages.SETADMIN, BitConverter.GetBytes(admin)));
                 Console.WriteLine("SETKEY: " + this.name + ", KEY: " + this.key + ", ISADMIN: " + this.admin.ToString());
-                //this.Send(MessageHandler.Messages.SETKEY, Encoding.ASCII.GetBytes(this.key));
             }
             else
-                this.NewKey();
+                NewKey();
         }
 
         public void NewKey()
         {
-            this.key = Administration.AddUserKey();
+            key = Administration.AddUserKey();
             Console.WriteLine("SETKEY: " + this.name + ", KEY: " + this.key + ", ISADMIN: " + this.admin.ToString());
-            this.Send(MessageHandler.Messages.SETKEY, Encoding.ASCII.GetBytes(this.key));
+            Send(new Packet(Packet.Messages.GETKEY, Encoding.ASCII.GetBytes(key)));
         }
 
         public void RequestKey()
         {
-            this.Send(MessageHandler.Messages.GETKEY, Encoding.ASCII.GetBytes(Administration.ServerKey));
+            Send(new Packet(Packet.Messages.GETKEY, Encoding.ASCII.GetBytes(Administration.ServerKey)));
         }
     }
 }

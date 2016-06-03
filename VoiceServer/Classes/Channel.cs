@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Voicer.Common.Data;
+using Voicer.Common.Net;
 
 namespace VoiceServer
 {
@@ -67,18 +68,18 @@ namespace VoiceServer
             if ((clients.Count >= channelLimit || channelLimit == 0) && client.joinPower > this.joinPower)
             {
                 clients.Add(client);
-                client.Send(MessageHandler.Messages.JOINCHANNEL, BitConverter.GetBytes(this.channelId));
+                client.Send(new Packet(Packet.Messages.JOINCHANNEL, BitConverter.GetBytes(this.channelId)));
                 if (ClientJoinedChannel != null)
                     ClientJoinedChannel(this, client);
             }
         }
 
-        public void Send(MessageHandler.Messages message, byte[] data, short filterId)
+        public void Send(Packet.Messages message, byte[] data, short filterId)
         {
             foreach (ServerClient client in clients)
             {
                 if (client.ID != filterId)
-                    client.Send(message, data);
+                    client.Send(new Packet(message, data));
             }
         }
 

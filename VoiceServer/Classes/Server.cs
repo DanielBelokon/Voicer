@@ -6,13 +6,14 @@ using System.Net.Sockets;
 using System.Net;
 using System.Threading;
 using Voicer.Common.Data;
+using Voicer.Common.Net;
 using System.IO;
 
 namespace VoiceServer
 {
     //public enum PacketType { Sound = 1, Info = 2, Chat = 3 };
 
-    public class Server
+    public class Server : NetworkClient
     {
         // List of connected (online) clients
         //public List<ServerClient> clientList = null;
@@ -30,10 +31,6 @@ namespace VoiceServer
         protected UdpClient listenSocket;
         protected AutoResetEvent packetRecieved;
 
-        private Thread tickThread;
-
-        MessageHandler packetHandler;
-
         public bool IsOnline
         {
             get
@@ -43,13 +40,14 @@ namespace VoiceServer
         }
 
         // Constructor
-        public Server (int port = 9999)
+        public Server (int port = 9999) : base(9999, 0)
         {
             channelList = new List<Channel>();
             //clientList = new List<ServerClient>();
             try
             {
                 Administration.LoadServerKeys();
+                StartTick();
                 string[] channels = File.ReadAllLines(Environment.CurrentDirectory + "serverlayout.txt");
                 string defaultChan = channels.First();
                 defaultChannel = short.Parse(defaultChan);
@@ -75,48 +73,35 @@ namespace VoiceServer
                 channelList.Add(new Channel("Channel 2"));
             }
 
-            packetHandler = new MessageHandler();
+            packetHandler.AddPacketHandler(Packet.Messages.VOICE, new Action<Packet>(HandleVoicePacket));
+            packetHandler.AddPacketHandler(Packet.Messages.CHAT, new Action<Packet>(HandleChatPacket));
+            packetHandler.AddPacketHandler(Packet.Messages.CONNECT, new Action<Packet>(HandleConnectPacket));
+            packetHandler.AddPacketHandler(Packet.Messages.CONNECTED, new Action<Packet>(HandleConnectedPacket));
+            packetHandler.AddPacketHandler(Packet.Messages.KEEPALIVE, new Action<Packet>(HandleKeepAlivePacket));
+            packetHandler.AddPacketHandler(Packet.Messages.DISCONNECT, new Action<Packet>(HandleDisconnectPacket));
+            packetHandler.AddPacketHandler(Packet.Messages.RECIEVED, new Action<Packet>(HandleRecievedPacket));
+            packetHandler.AddPacketHandler(Packet.Messages.CHANNEL, new Action<Packet>(HandleChannelPacket));
+            packetHandler.AddPacketHandler(Packet.Messages.JOINCHANNEL, new Action<Packet>(HandleJoinChannelPacket));
+            packetHandler.AddPacketHandler(Packet.Messages.NEWKEY, new Action<Packet>(HandleNewKeyPacket));
+            packetHandler.AddPacketHandler(Packet.Messages.SETKEY, new Action<Packet>(HandleSetKeyPacket));
+            packetHandler.AddPacketHandler(Packet.Messages.SERVERMESSAGE, new Action<Packet>(HandleServerMessagePacket));
 
-            packetHandler.AddMessageHandler(MessageHandler.Messages.VOICE, new Action<byte[], IPEndPoint>(HandleVoicePacket));
-            packetHandler.AddMessageHandler(MessageHandler.Messages.CHAT, new Action<byte[], IPEndPoint>(HandleChatPacket));
-            packetHandler.AddMessageHandler(MessageHandler.Messages.CONNECT, new Action<byte[], IPEndPoint>(HandleConnectPacket));
-            packetHandler.AddMessageHandler(MessageHandler.Messages.CONNECTED, new Action<byte[], IPEndPoint>(HandleConnectedPacket));
-            packetHandler.AddMessageHandler(MessageHandler.Messages.KEEPALIVE, new Action<byte[], IPEndPoint>(HandleKeepAlivePacket));
-            packetHandler.AddMessageHandler(MessageHandler.Messages.DISCONNECT, new Action<byte[], IPEndPoint>(HandleDisconnectPacket));
-            packetHandler.AddMessageHandler(MessageHandler.Messages.RECIEVED, new Action<byte[], IPEndPoint>(HandleRecievedPacket));
-            packetHandler.AddMessageHandler(MessageHandler.Messages.CHANNEL, new Action<byte[], IPEndPoint>(HandleChannelPacket));
-            packetHandler.AddMessageHandler(MessageHandler.Messages.JOINCHANNEL, new Action<byte[], IPEndPoint>(HandleJoinChannelPacket));
-            packetHandler.AddMessageHandler(MessageHandler.Messages.NEWKEY, new Action<byte[], IPEndPoint>(HandleNewKeyPacket));
-            packetHandler.AddMessageHandler(MessageHandler.Messages.SETKEY, new Action<byte[], IPEndPoint>(HandleSetKeyPacket));
-            packetHandler.AddMessageHandler(MessageHandler.Messages.SERVERMESSAGE, new Action<byte[], IPEndPoint>(HandleServerMessagePacket));
-
-            online = true;
             this.port = port;
             // Start listening for incoming packets and requests
-            listenThread = new Thread(new ThreadStart(StartListen));
-            packetRecieved = new AutoResetEvent(true);
-            listenThread.Start();
-
-            tickThread = new Thread(new ThreadStart(Tick));
-            tickThread.Start();
+            StartListen();
         }
 
-        private void Tick()
+        public override void Tick()
         {
-            while (online)
-            {
-                Thread.Sleep(1000);
-
-                Administration.SaveServerKeys();
-            }
+            Administration.SaveServerKeys();
         }
 
         #region Packet Handling
 
-        protected void HandleJoinChannelPacket(byte[] data, IPEndPoint endP)
+        protected void HandleJoinChannelPacket(Packet packet)
         {
-            short senderId = BitConverter.ToInt16(data, 0);
-            short channelId = BitConverter.ToInt16(data, 2);
+            short senderId = BitConverter.ToInt16(packet.Data, 0);
+            short channelId = BitConverter.ToInt16(packet.Data, 2);
 
             Channel channel = FindChannel(channelId);
             
@@ -134,84 +119,85 @@ namespace VoiceServer
         }
 
         // Proccess and forword voice packets
-        protected void HandleVoicePacket(byte[] data, IPEndPoint endP)
+        protected void HandleVoicePacket(Packet packet)
         {
-            short senderId = BitConverter.ToInt16(data, 0);
-            short channelId = BitConverter.ToInt16(data, 2);
-            SendToClients(channelId, MessageHandler.Messages.VOICE, data, senderId);
+            short senderId = BitConverter.ToInt16(packet.Data, 0);
+            short channelId = BitConverter.ToInt16(packet.Data, 2);
+            SendToClients(channelId, Packet.Messages.VOICE, packet.Data, senderId);
         }
 
-        protected void HandleChatPacket(byte[] data, IPEndPoint endP)
+        protected void HandleChatPacket(Packet packet)
         {
-            short senderId = BitConverter.ToInt16(data, 0);
-            short channelId = BitConverter.ToInt16(data, 2);
+            short senderId = BitConverter.ToInt16(packet.Data, 0);
+            short channelId = BitConverter.ToInt16(packet.Data, 2);
             ServerClient client = FindClient(senderId);
             if (client != null)
             {
-                SendToClients(channelId, MessageHandler.Messages.CHAT, data);
-                Console.WriteLine(client.name + ": " + Encoding.ASCII.GetString(data.Skip(4).ToArray()));
+                SendToClients(channelId, Packet.Messages.CHAT, packet.Data);
+                Console.WriteLine(client.name + ": " + Encoding.ASCII.GetString(packet.Data.Skip(4).ToArray()));
             }
         }
 
-        protected void HandleChannelPacket(byte[] data, IPEndPoint endP)
+        protected void HandleChannelPacket(Packet packet)
         {
-            ServerClient user = FindClient(BitConverter.ToInt16(data, 0));
+            ServerClient user = FindClient(BitConverter.ToInt16(packet.Data, 0));
 
         }
 
-        protected void HandleConnectPacket(byte[] data, IPEndPoint endp)
+        protected void HandleConnectPacket(Packet packet)
         {
-            string name = Data.MakeSafe(Encoding.ASCII.GetString(data));
+            string name = Data.MakeSafe(Encoding.ASCII.GetString(packet.Data));
 
-            ServerClient newClient = new ServerClient(endp.Address, name, (short)(lastID = ++lastID));
+            ServerClient newClient = new ServerClient(packet.Sender.Address, name, (short)(lastID = ++lastID));
             newClient.ClientDisconnected += ClientDisconnect;
             newClient.ClientRequestPacket += ClientRequestPacket;
             newClient.SwitchChannel(FindChannel(defaultChannel));
             UpdateUsers();
+
             Console.WriteLine(newClient.name + " Has Connected.");
         }
 
-        protected void HandleConnectedPacket(byte[] data, IPEndPoint endP)
+        protected void HandleConnectedPacket(Packet packet)
         {
-            ServerClient user = FindClient(BitConverter.ToInt16(data, 0));
+            ServerClient user = FindClient(BitConverter.ToInt16(packet.Data, 0));
             if (user != null)
             {
                 user.RequestKey();
             }
         }
 
-        protected void HandleDisconnectPacket(byte[] data, IPEndPoint endP)
+        protected void HandleDisconnectPacket(Packet packet)
         {
-            ServerClient user = FindClient(BitConverter.ToInt16(data, 0));
+            ServerClient user = FindClient(BitConverter.ToInt16(packet.Data, 0));
             if (user != null)
             {
-                user.Disconnect(ServerClient.ClosingReason.ClientDisconnect);
+                user.Disconnect();
             }
         }
 
-        protected void HandleKeepAlivePacket(byte[] data, IPEndPoint endP)
+        protected void HandleKeepAlivePacket(Packet packet)
         {
-            ServerClient user = FindClient(BitConverter.ToInt16(data, 0));
+            ServerClient user = FindClient(BitConverter.ToInt16(packet.Data, 0));
             if (user != null)
             {
                 user.UpdatesMissed = 0;
             }
         }
 
-        protected void HandleRecievedPacket(byte[] data, IPEndPoint endP)
+        protected void HandleRecievedPacket(Packet packet)
         {
-            ServerClient user = FindClient(BitConverter.ToInt16(data, 0));
+            ServerClient user = FindClient(BitConverter.ToInt16(packet.Data, 0));
 
             if (user != null)
             {
-                short messageId = BitConverter.ToInt16(data, 2);
+                short messageId = BitConverter.ToInt16(packet.Data, 2);
                 user.PacketsAwaitingConfirmation.Remove(messageId);
             }
         }
 
-        protected void HandleNewKeyPacket(byte[] data, IPEndPoint endP)
+        protected void HandleNewKeyPacket(Packet packet)
         {
-            ServerClient user = FindClient(BitConverter.ToInt16(data, 0));
+            ServerClient user = FindClient(BitConverter.ToInt16(packet.Data, 0));
 
             if (user != null)
             {
@@ -219,28 +205,28 @@ namespace VoiceServer
             }
         }
 
-        protected void HandleSetKeyPacket(byte[] data, IPEndPoint endP)
+        protected void HandleSetKeyPacket(Packet packet)
         {
-            ServerClient user = FindClient(BitConverter.ToInt16(data, 0));
+            ServerClient user = FindClient(BitConverter.ToInt16(packet.Data, 0));
             if (user != null)
             {
-                user.SetKey(Encoding.ASCII.GetString(data.Skip(2).ToArray()));
+                user.SetKey(Encoding.ASCII.GetString(packet.Data.Skip(2).ToArray()));
             }
         }
 
-        protected void HandleServerMessagePacket(byte[] data, IPEndPoint endP)
+        protected void HandleServerMessagePacket(Packet packet)
         {
-            ServerClient user = FindClient(BitConverter.ToInt16(data, 0));
+            ServerClient user = FindClient(BitConverter.ToInt16(packet.Data, 0));
             if (user != null)
             {
-                string message = Encoding.ASCII.GetString(data.Skip(2).ToArray());
+                string message = Encoding.ASCII.GetString(packet.Data.Skip(2).ToArray());
                 if (user.IsAdmin)
                 {
                     Console.WriteLine(user.name + ": " + message);
-                    SendToClients(0, MessageHandler.Messages.SERVERMESSAGE, data);
+                    SendToClients(0, Packet.Messages.SERVERMESSAGE, packet.Data);
                 }
                 else
-                    user.Send(MessageHandler.Messages.SERVERMESSAGE, BitConverter.GetBytes(0).Concat(Encoding.ASCII.GetBytes("Insuffciant Permissions.")).ToArray());
+                    user.Send(new Packet(Packet.Messages.SERVERMESSAGE, BitConverter.GetBytes(0).Concat(Encoding.ASCII.GetBytes("Insuffciant Permissions.")).ToArray()));
             }
         }
 
@@ -251,11 +237,8 @@ namespace VoiceServer
         {
             Console.WriteLine("Server Shutting Down");
             Administration.SaveServerKeys();
-            SendToClients(0, MessageHandler.Messages.SHUTDOWN, Encoding.ASCII.GetBytes(message));
-            this.online = false;
-            listenSocket.Close();
-            listenThread.Abort();
-            tickThread.Abort();
+            SendToClients(0, Packet.Messages.SHUTDOWN, Encoding.ASCII.GetBytes(message));
+            this.Disconnect();
         }
         
 
@@ -286,57 +269,10 @@ namespace VoiceServer
         }
         public void Kick(ServerClient client)
         {
-            client.Disconnect(ServerClient.ClosingReason.Kicked);
+            client.Disconnect();
         }
 
         // Recieve any and all packets that come into the listening port, seperate them by type, and forward to appropriate functions
-        public void StartListen()
-        {
-            // Provides the local endpoint (port) for the UDP client to listen on.
-            IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, port);
-
-            // Listening socket
-            listenSocket = new UdpClient(localEndPoint);
-
-            try
-            {
-                Console.WriteLine("Server Online.");
-                while (online)
-                {
-                    packetRecieved.WaitOne();
-                    listenSocket.BeginReceive(new AsyncCallback(OnReceived), null);
-                }
-            }
-            catch (SocketException)
-            {
-                Console.WriteLine("An error occured when trying to start listening socket.");
-            }
-        }
-
-        public void OnReceived(IAsyncResult ar)
-        {
-            IPEndPoint remoteEP = null;
-
-            try
-            {
-                byte[] data;
-
-                if (online)
-                {
-                    data = listenSocket.EndReceive(ar, ref remoteEP);
-                    packetRecieved.Set();
-                }
-                else return;
-                // Process buffer
-
-                byte[] cleanMessage = data.Skip(2).ToArray<byte>();
-                packetHandler.HandleMessage((MessageHandler.Messages)BitConverter.ToInt16(data, 0), new object[] { cleanMessage, remoteEP });
-            }
-
-            catch (SocketException)
-            {
-            }
-        }
 
         public void ClientDisconnect (ServerClient client, ServerClient.ClosingReason reason)
         {
@@ -354,8 +290,8 @@ namespace VoiceServer
 
         public void ClientRequestPacket(ServerClient client, short packetId)
         {
-            if (packetId == (short)MessageHandler.Messages.GETUSERS)
-                client.Send(MessageHandler.Messages.GETUSERS, SerializeUsers());
+            if (packetId == (short)Packet.Messages.GETUSERS)
+                client.Send(new Packet(Packet.Messages.GETUSERS, SerializeUsers()));
         }
 
         // Returns client with specified ID from connected client list.
@@ -419,7 +355,7 @@ namespace VoiceServer
         }
 
         // Send a packet to all connected clients
-        public void SendToClients(short channelId, MessageHandler.Messages message, byte[] data = null, short filterID = -1, bool updateConfirmationRequest = false)
+        public void SendToClients(short channelId, Packet.Messages message, byte[] data = null, short filterID = -1, bool updateConfirmationRequest = false)
         {
             if (channelId == 0)
             {
@@ -446,13 +382,13 @@ namespace VoiceServer
         {
             byte[] data = BitConverter.GetBytes(clientId).Concat(Encoding.ASCII.GetBytes(message)).ToArray();
 
-            SendToClients(channelId, MessageHandler.Messages.CHAT, data);
+            SendToClients(channelId, Packet.Messages.CHAT, data);
         }
 
         // Send an update packet with the current connected users to the connected users
         protected void UpdateUsers()
         {
-            SendToClients(0, MessageHandler.Messages.GETUSERS, SerializeUsers()); 
+            SendToClients(0, Packet.Messages.GETUSERS, SerializeUsers()); 
         }
 
         public byte[] SerializeUsers()

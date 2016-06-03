@@ -42,6 +42,9 @@
   <ItemGroup>
     <Compile Include="Data\Data.cs" />
     <Compile Include="Data\MessageHandler.cs" />
+    <Compile Include="Data\PacketHandler.cs" />
+    <Compile Include="Net\NetworkClient.cs" />
+    <Compile Include="Net\Packet.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup />

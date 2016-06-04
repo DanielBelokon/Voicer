@@ -9,7 +9,7 @@ using Voicer.Common.Data;
 
 namespace Voicer.Common.Net
 {
-    public class NetworkClient
+    public class NetworkClient : IDisposable
     {
         private UdpClient listenSocket;
         private AutoResetEvent packetRecieved;
@@ -153,11 +153,15 @@ namespace Voicer.Common.Net
                     listenSocket.Close();
                     listenThread.Abort();
                 }
+
                 if (senderSocket != null)
                     senderSocket.Close();
+
+                //if (tickThread != null)
+                //    tickThread.Abort();
             }
             catch (Exception e)
-            { Console.WriteLine("Error closing connections: \n" + e.Message); }
+            { Console.WriteLine("Error closing connections in {0}: {1}\n {2}", GetType(), e.GetType(),e.Message); }
         }
 
         public virtual void Disconnecting()
@@ -175,7 +179,7 @@ namespace Voicer.Common.Net
                 byte[] buffer = packet.Encode();
 
                 SocketAsyncEventArgs e = new SocketAsyncEventArgs();
-
+                
                 e.SetBuffer(buffer, 0, buffer.Length);
                 e.Completed += new EventHandler<SocketAsyncEventArgs>(MessageSent);
                 MessageSending(packet.Type);
@@ -195,6 +199,11 @@ namespace Voicer.Common.Net
         public virtual void MessageSending(Packet.Messages message)
         {
 
+        }
+
+        public void Dispose()
+        {
+            Disconnect();
         }
     }
 }

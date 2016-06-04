@@ -7,7 +7,7 @@ using NAudio.Wave;
 
 namespace Voicer.Sound
 {
-    public class Audio
+    public class Audio : IDisposable
     {
         public static readonly int BYTES_PER_100MS = 8820;
         protected static WaveFormat waveFormat;
@@ -76,6 +76,8 @@ namespace Voicer.Sound
             if (isRecording)
             {
                 sourceStream.StopRecording();
+                sourceStream.Dispose();
+                sourceStream = null;
                 isRecording = false;
             }
         }
@@ -151,5 +153,10 @@ namespace Voicer.Sound
             else customDataRecievedEvent.Invoke(sender, e);
         }
 
+        public void Dispose()
+        {
+            StopRecording();
+            StopSound();
+        }
     }
 }

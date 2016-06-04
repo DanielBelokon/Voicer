@@ -25,48 +25,51 @@ namespace Voicer.UI
         {
             get
             {
-                return this.text;
+                return text;
             }
         }
 
         public ListItem(Color color)
         {
             InitializeComponent();
-            this.text = "";
-            TextLabel.Text = "";
+            text = "";
             defaultColor = color;
             currentColor = color;
             channelID = 0;
             userID = 0;
-            this.BackColor = defaultColor;
+            BackColor = defaultColor;
         }
 
         public void SetText(string text)
         {
             this.text = text;
-            TextLabel.Text = text;
         }
 
         private void ListItem_MouseLeave(object sender, EventArgs e)
         {
-            this.BackColor = currentColor;
+            BackColor = currentColor;
         }
 
         private void ListItem_MouseEnter(object sender, EventArgs e)
         {
-            this.BackColor = Color.AliceBlue;
+            BackColor = Color.AliceBlue;
         }
 
         public void SelectItem()
         {
-            this.BackColor = Color.LightBlue;
+            BackColor = Color.LightBlue;
             currentColor = Color.LightBlue;
         }
 
         public void DeSelect()
         {
             currentColor = defaultColor;
-            this.BackColor = currentColor;
+            BackColor = currentColor;
+        }
+
+        private void ListItem_Paint(object sender, PaintEventArgs e)
+        {
+            e.Graphics.DrawString(text, DefaultFont, Brushes.Black, new Point(2, 8));
         }
     }
 }

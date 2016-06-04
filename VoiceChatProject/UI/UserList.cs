@@ -53,19 +53,29 @@ namespace Voicer.UI
             itemControlList = new List<ListItem>();
             selectedID = -1;
             int i = 0;
-            
-            foreach (Channel channel in channelList.ToList())
-            {
-                AddItem(channel.name, i, 0, Color.Gainsboro).channelID = channel.ID;
-                i++;
 
-                foreach (User curUser in channel.users)
+            try
+            {
+                foreach (Channel channel in channelList.ToList())
                 {
-                    AddItem(curUser.nickname, i, 1, Color.GhostWhite).userID = curUser.ID;
+                    AddItem(channel.name, i, 0, Color.Gainsboro).channelID = channel.ID;
                     i++;
+
+                    foreach (User curUser in channel.users)
+                    {
+                        AddItem(curUser.nickname, i, 1, Color.GhostWhite).userID = curUser.ID;
+                        i++;
+                    }
                 }
             }
-            this.ResumeLayout();
+            catch (NullReferenceException)
+            {
+                Console.WriteLine("An error occured while creating channels...");
+            }
+            finally
+            {
+                this.ResumeLayout();
+            }
         }
 
         private ListItem AddItem(string text, int itemId, int hierarchy, Color defColor)

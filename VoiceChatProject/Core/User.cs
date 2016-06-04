@@ -26,7 +26,9 @@ namespace Voicer
         public void Dispose()
         {
             if (clientAudio != null)
-                clientAudio.StopSound();
+            {
+                clientAudio.Dispose();
+            }
         }
     }
 }

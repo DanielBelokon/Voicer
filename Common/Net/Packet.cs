@@ -8,7 +8,7 @@ using Voicer.Common.Data;
 
 namespace Voicer.Common.Net
 {
-    public class Packet
+    public class Packet : IDisposable
     {
         public enum Messages : short
         {
@@ -87,6 +87,13 @@ namespace Voicer.Common.Net
                 buffer = buffer.Concat(data).ToArray();
 
             return buffer;
+        }
+
+        public void Dispose()
+        {
+            data = null;
+            type = 0;
+            sender = null;
         }
     }
 }

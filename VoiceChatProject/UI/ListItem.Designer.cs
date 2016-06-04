@@ -28,20 +28,9 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.TextLabel = new System.Windows.Forms.Label();
             this.PictureBox = new System.Windows.Forms.PictureBox();
             ((System.ComponentModel.ISupportInitialize)(this.PictureBox)).BeginInit();
             this.SuspendLayout();
-            // 
-            // TextLabel
-            // 
-            this.TextLabel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-            this.TextLabel.AutoSize = true;
-            this.TextLabel.Location = new System.Drawing.Point(3, 8);
-            this.TextLabel.Name = "TextLabel";
-            this.TextLabel.Size = new System.Drawing.Size(10, 13);
-            this.TextLabel.TabIndex = 0;
-            this.TextLabel.Text = ".";
             // 
             // PictureBox
             // 
@@ -58,20 +47,17 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.Controls.Add(this.PictureBox);
-            this.Controls.Add(this.TextLabel);
             this.Name = "ListItem";
             this.Size = new System.Drawing.Size(409, 28);
+            this.Paint += new System.Windows.Forms.PaintEventHandler(this.ListItem_Paint);
             this.MouseEnter += new System.EventHandler(this.ListItem_MouseEnter);
             this.MouseLeave += new System.EventHandler(this.ListItem_MouseLeave);
             ((System.ComponentModel.ISupportInitialize)(this.PictureBox)).EndInit();
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
         #endregion
-
-        private System.Windows.Forms.Label TextLabel;
         private System.Windows.Forms.PictureBox PictureBox;
     }
 }

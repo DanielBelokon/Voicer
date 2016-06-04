@@ -31,10 +31,13 @@ namespace Voicer.UI
         [DllImport("kernel32.dll", SetLastError = true)]
         static extern bool AllocConsole();
 
+        [DllImport("Kernel32")]
+        public static extern void FreeConsole();
+
         public Voicer_Main()
         {
             AllocConsole();
-
+            //FreeConsole();
             InitializeComponent();
             localClient = new Client();
             UserList = new List<User>();

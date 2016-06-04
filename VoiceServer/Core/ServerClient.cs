@@ -87,7 +87,7 @@ namespace VoiceServer
 
             foreach (short packetId in PacketsAwaitingConfirmation.ToList())
             {
-                RequestPacket(packetId);
+                //RequestPacket(packetId);
             }
             PacketsAwaitingConfirmation.Clear();
         }

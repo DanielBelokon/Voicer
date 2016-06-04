@@ -1,6 +1,8 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual C# Express 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25123.0
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Voicer", "VoiceChatProject\Voicer.csproj", "{07B9284F-F73A-4F96-BE0B-C71D3C224EBE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VoicerServer", "VoiceServer\VoicerServer.csproj", "{5DDEC841-7C73-4CE1-875C-4A9B81C27E44}"

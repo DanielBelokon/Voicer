@@ -107,6 +107,7 @@ namespace Voicer.Sound
                 waveOut = null;
 
                 audioBufferProvider.ClearBuffer();
+                audioBufferProvider = null;
                 isPlaying = false;
             }
         }
@@ -157,6 +158,7 @@ namespace Voicer.Sound
         {
             StopRecording();
             StopSound();
+            customDataRecievedEvent = null;
         }
     }
 }

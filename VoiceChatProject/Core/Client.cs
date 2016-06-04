@@ -38,8 +38,7 @@ namespace Voicer
         const int ServerPort = 9999;
 
         // Stops the user list from updating while it's already being updated on a different thread.
-        private bool blockUserUpdatePacket = false;
-
+        private object lockedThread = new object();
         // A thread used to check the amount of packets recieved in the last x seconds, to make sure there is a stable connection.
         protected int packetCount;
 
@@ -130,15 +129,14 @@ namespace Voicer
 
         public override void Disconnecting()
         {
-            string serverString = serverAddress.ToString();
             endPoint = null;
             nickname = null;
             UserListUpdated(new List<Channel>(), true);
-            blockUserUpdatePacket = false;
             ChangeStatus("Offline");
 
             if (IsConnected)
             {
+                string serverString = serverAddress.ToString();
                 Send(new Packet(Packet.Messages.DISCONNECT, BitConverter.GetBytes(clientID)));
                 Console.WriteLine("Disconnected from " + serverString);
             }
@@ -227,46 +225,44 @@ namespace Voicer
         // Update the UI with a new user list.
         public void HandleUserListPacket(Packet packet)
         {
-            while (blockUserUpdatePacket)
+            lock (lockedThread)
             {
-                Thread.Sleep(50);
-            }
-            blockUserUpdatePacket = true;
-            string users = "";
+                string users = "";
 
-            if (packet != null && packet.Data != null)
-                users = Encoding.ASCII.GetString(packet.Data);
+                if (packet != null && packet.Data != null)
+                    users = Encoding.ASCII.GetString(packet.Data);
 
-            if (UserListUpdated != null)
-            {
-                if (users == "")
+                if (UserListUpdated != null)
                 {
-                    UserListUpdated(new List<Channel>(), true);
-                    return;
-                }
-
-                char[] channelSplitters = { '|' };
-                char[] clientSplitters = { ',' };
-
-                string[] channelArray = users.Split(channelSplitters, StringSplitOptions.RemoveEmptyEntries);
-                channelList = new List<Channel>();
-                foreach (string channelString in channelArray)
-                {
-                    string[] userArray = channelString.Split(clientSplitters, StringSplitOptions.RemoveEmptyEntries);
-                    Channel channel = new Channel(userArray[0], short.Parse(userArray[1]));
-                    if (userArray.Count() > 2)
+                    if (users == "")
                     {
-                        for (int i = 2; i <= (userArray.Length +2) / 2; i += 2)
-                        {
-                            // Create a new user, set ID and nickname.
-                            channel.users.Add(new User(Data.DeSerialize(userArray[i]), short.Parse(userArray[i + 1])));
-                        }
+                        UserListUpdated(new List<Channel>(), true);
+                        return;
                     }
 
-                    channelList.Add(channel);
+                    char[] channelSplitters = { '|' };
+                    char[] clientSplitters = { ',' };
+
+                    string[] channelArray = users.Split(channelSplitters, StringSplitOptions.RemoveEmptyEntries);
+                    channelList = new List<Channel>();
+                    foreach (string channelString in channelArray)
+                    {
+                        string[] userArray = channelString.Split(clientSplitters, StringSplitOptions.RemoveEmptyEntries);
+                        Channel channel = new Channel(userArray[0], short.Parse(userArray[1]));
+                        if (userArray.Count() > 2)
+                        {
+                            for (int i = 2; i <= (userArray.Length + 2) / 2; i += 2)
+                            {
+                                // Create a new user, set ID and nickname.
+                                channel.users.Add(new User(Data.DeSerialize(userArray[i]), short.Parse(userArray[i + 1])));
+                            }
+                        }
+
+                        channelList.Add(channel);
+                    }
+                    UserListUpdated(channelList, false);
                 }
-                blockUserUpdatePacket = false;
-                UserListUpdated(channelList, false);
+
             }
         }
 

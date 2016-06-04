@@ -148,20 +148,25 @@ namespace Voicer.Common.Net
             bListening = false;
             try
             {
+                if (tickThread != null)
+                {
+                    tickThread.Abort();
+                    tickThread = null;
+                }
+
                 if (listenSocket != null && listenThread != null)
                 {
                     listenSocket.Close();
                     listenThread.Abort();
+                    listenSocket = null;
+                    listenThread = null;
                 }
 
                 if (senderSocket != null)
                     senderSocket.Close();
-
-                //if (tickThread != null)
-                //    tickThread.Abort();
             }
             catch (Exception e)
-            { Console.WriteLine("Error closing connections in {0}: {1}\n {2}", GetType(), e.GetType(),e.Message); }
+            { Console.WriteLine("Error closing connections in {0}: \n{1}\n\n {2}", GetType(), e.GetType(),e.Message); }
         }
 
         public virtual void Disconnecting()

@@ -6,12 +6,13 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using Voicer.ServerObjects;
 
 namespace Voicer.UI
 {
     public partial class UserList : UserControl
     {
-        protected List<Channel> channelList;
+        protected Server server;
 
         public int selectedID;
 
@@ -21,7 +22,6 @@ namespace Voicer.UI
 
         public UserList()
         {
-            channelList = null;
             itemControlList = new List<ListItem>();
             InitializeComponent();
             selectedID = -1;
@@ -32,23 +32,20 @@ namespace Voicer.UI
         {
         }
 
-        public void SetUsers(List<Channel> userList)
+        public void SetServer(Server server)
         {
-            if (channelList != userList)
-            {
-                channelList = userList;
-                CreateItems();
-            }
+            this.server = server;
+            CreateItems();
         }
 
         private void CreateItems()
         {
-            if (this.InvokeRequired)
+            if (InvokeRequired)
             {
-                this.Invoke(new MethodInvoker(CreateItems));
+                Invoke(new MethodInvoker(CreateItems));
                 return;
             }
-            this.SuspendLayout();
+            SuspendLayout();
             ClearUsers();
             itemControlList = new List<ListItem>();
             selectedID = -1;
@@ -56,14 +53,14 @@ namespace Voicer.UI
 
             try
             {
-                foreach (Channel channel in channelList.ToList())
+                foreach (Channel channel in server.Channels.ToList())
                 {
-                    AddItem(channel.name, i, 0, Color.Gainsboro).channelID = channel.ID;
+                    AddItem(channel.Name, i, 0, Color.Gainsboro).channelID = channel.ID;
                     i++;
 
-                    foreach (User curUser in channel.users)
+                    foreach (User curUser in channel.Users)
                     {
-                        AddItem(curUser.nickname, i, 1, Color.GhostWhite).userID = curUser.ID;
+                        AddItem(curUser.Name, i, 1, Color.GhostWhite).userID = curUser.ID;
                         i++;
                     }
                 }
@@ -74,7 +71,7 @@ namespace Voicer.UI
             }
             finally
             {
-                this.ResumeLayout();
+                ResumeLayout();
             }
         }
 
@@ -87,7 +84,7 @@ namespace Voicer.UI
             newItem.Anchor = (AnchorStyles.Left | AnchorStyles.Right);
             newItem.Click += new EventHandler(OnListItemClicked);
             itemControlList.Add(newItem);
-            this.Controls.Add(newItem);
+            Controls.Add(newItem);
 
             return newItem;
         }
@@ -112,16 +109,21 @@ namespace Voicer.UI
                 ListItemClicked(clicked, EventArgs.Empty); 
         }
 
+        public void UserSwapChannel()
+        {
+
+        }
+
         internal void ClearUsers()
         {
-            if (this.InvokeRequired)
+            if (InvokeRequired)
             {
-                this.Invoke(new MethodInvoker(ClearUsers));
+                Invoke(new MethodInvoker(ClearUsers));
                 return;
             }
             foreach (ListItem curItem in itemControlList)
             {
-                this.Controls.Remove(curItem);
+                Controls.Remove(curItem);
                 curItem.Dispose();
             }
         }

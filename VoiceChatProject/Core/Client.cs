@@ -9,13 +9,14 @@ using System.Threading;
 using System.IO;
 using Voicer.Common.Data;
 using Voicer.Common.Net;
+using Voicer.ServerObjects;
 
 namespace Voicer
 {
     public class Client : NetworkClient
     {
 
-        public delegate void UserListUpdateDelegate(List<Channel> channels, bool ClearList);
+        public delegate void UserListUpdateDelegate(Server server, bool ClearList);
         public delegate void StringMessageDelegate(string message);
 
             //Event Handlers
@@ -25,7 +26,7 @@ namespace Voicer
         public event StringMessageDelegate ServerMessageRecieved;
 
         // List of channels on the server
-        protected List<Channel> channelList;
+        protected Server server;
         // The client ID used by the server and client to distinguish this user from others.
         protected short clientID;
         // The channel the user is currently recieving and sending messages on.
@@ -91,6 +92,7 @@ namespace Voicer
                 Console.WriteLine("Initializing tick...");
                 StartTick(15);
 
+                server = new Server();
                 byte[] message = Encoding.ASCII.GetBytes(nickname);
 
                 Console.WriteLine("Initializing connection...");
@@ -131,7 +133,7 @@ namespace Voicer
         {
             endPoint = null;
             nickname = null;
-            UserListUpdated(new List<Channel>(), true);
+            UserListUpdated(new Server(), true);
             ChangeStatus("Offline");
 
             if (IsConnected)
@@ -194,9 +196,9 @@ namespace Voicer
                 return;
 
             User user = FindClient(clientId);
-            if (user.ID != -1)
+            if (user != null)
             {
-                user.clientAudio.AddSound(soundData);
+                user.AddSound(soundData);
             }
         }
 
@@ -213,9 +215,9 @@ namespace Voicer
             else
             {
                 User user = FindClient(clientId);
-                if (user.ID != -1)
+                if (user != null)
                 {
-                    senderName = user.nickname;
+                    senderName = user.Name;
                 }
             }
 
@@ -236,7 +238,7 @@ namespace Voicer
                 {
                     if (users == "")
                     {
-                        UserListUpdated(new List<Channel>(), true);
+                        UserListUpdated(new Server(), true);
                         return;
                     }
 
@@ -244,25 +246,23 @@ namespace Voicer
                     char[] clientSplitters = { ',' };
 
                     string[] channelArray = users.Split(channelSplitters, StringSplitOptions.RemoveEmptyEntries);
-                    channelList = new List<Channel>();
+                    server.SetChannels(new List<Channel>());
                     foreach (string channelString in channelArray)
                     {
                         string[] userArray = channelString.Split(clientSplitters, StringSplitOptions.RemoveEmptyEntries);
                         Channel channel = new Channel(userArray[0], short.Parse(userArray[1]));
+                        server.ServerAddChannel(channel);
                         if (userArray.Count() > 2)
                         {
                             for (int i = 2; i <= (userArray.Length + 2) / 2; i += 2)
                             {
                                 // Create a new user, set ID and nickname.
-                                channel.users.Add(new User(Data.DeSerialize(userArray[i]), short.Parse(userArray[i + 1])));
+                                server.UserAdd(new User(Data.DeSerialize(userArray[i]), short.Parse(userArray[i + 1])), channel);
                             }
                         }
-
-                        channelList.Add(channel);
                     }
-                    UserListUpdated(channelList, false);
+                    UserListUpdated(server, false);
                 }
-
             }
         }
 
@@ -347,17 +347,7 @@ namespace Voicer
 
         public User FindClient(short id)
         {
-            foreach (Channel channel in channelList)
-            {
-                foreach (User client in channel.users)
-                {
-                    if (client.ID == id)
-                    {
-                        return client;
-                    }
-                }
-            }
-            return User.Empty;
+            return server.GetUser(id);
         }
 
         // Called when a chat message is recieved

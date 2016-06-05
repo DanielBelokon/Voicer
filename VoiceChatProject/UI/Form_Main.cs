@@ -11,13 +11,13 @@ using System.Runtime.InteropServices;
 
 using Voicer.Properties;
 using Voicer.Sound;
+using Voicer.ServerObjects;
 
 namespace Voicer.UI
 {
     public partial class Voicer_Main : Form
     {
         Client localClient;
-        List<User> UserList;
 
         Form_Preferences preferences;
 
@@ -40,7 +40,6 @@ namespace Voicer.UI
             //FreeConsole();
             InitializeComponent();
             localClient = new Client();
-            UserList = new List<User>();
             recorder = new Audio();
             ClientListControl.ListItemClicked += ItemList_Clicked;
 
@@ -135,7 +134,7 @@ namespace Voicer.UI
         {
             if (chatbox_Output.InvokeRequired)
             {
-                chatbox_Output.Invoke(new Action<string>(OnChatMessage), new object[] { text });
+                chatbox_Output.Invoke(new Action<string>(OnChatMessage), text);
                 return;
             }
 
@@ -146,28 +145,28 @@ namespace Voicer.UI
         {
             if (chatbox_Server.InvokeRequired)
             {
-                chatbox_Server.Invoke(new Action<string>(OnServerMessage), new object[] { text });
+                chatbox_Server.Invoke(new Action<string>(OnServerMessage), text);
                 return;
             }
 
             chatbox_Server.AppendText(text + "\n");
         }
 
-        private void OnChannelListUpdate(List<Channel> channelList, bool clear)
+        private void OnChannelListUpdate(Server server, bool clear)
         {
             if (clear)
             {
                 ClientListControl.ClearUsers();
             }
             else
-                ClientListControl.SetUsers(channelList);
+                ClientListControl.SetServer(server);
         }
 
         public void UpdateStatusLabel(string status)
         {
             if (StatusLabel.InvokeRequired)
             {
-                StatusLabel.Invoke(new Action<string>(UpdateStatusLabel), new object[] { status });
+                StatusLabel.Invoke(new Action<string>(UpdateStatusLabel), status);
                 return;
             }
 

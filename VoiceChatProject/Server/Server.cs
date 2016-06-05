@@ -13,6 +13,8 @@ namespace Voicer.ServerObjects
         private string name;
         private short id;
 
+        public EventHandler UserlistUpdate;
+
         public List<Channel> Channels
         {
             get
@@ -49,6 +51,7 @@ namespace Voicer.ServerObjects
             {
                 UserLeaveChannel(user);
                 UserAdd(user, newChannel);
+                OnUserlistUpdate();
             }
         }
 
@@ -70,7 +73,10 @@ namespace Voicer.ServerObjects
         {
             Channel channel = GetChannel(channelID);
             if (channel != null)
+            {
                 UserAdd(user, channel);
+                OnUserlistUpdate();
+            }
         }
 
         public void ServerAddChannel(Channel newChannel)
@@ -140,6 +146,12 @@ namespace Voicer.ServerObjects
             id = 0;
             name = null;
             
+        }
+
+        public void OnUserlistUpdate()
+        {
+            if (UserlistUpdate != null)
+                UserlistUpdate(this, EventArgs.Empty);
         }
     }
 }

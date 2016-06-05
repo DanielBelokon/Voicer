@@ -19,7 +19,7 @@ namespace Voicer
         public delegate void UserListUpdateDelegate(Server server, bool ClearList);
         public delegate void StringMessageDelegate(string message);
 
-            //Event Handlers
+        //Event Handlers
         public event UserListUpdateDelegate UserListUpdated;
         public event StringMessageDelegate ChatMessageRecieved;
         public event StringMessageDelegate StatusChanged;
@@ -68,12 +68,16 @@ namespace Voicer
             packetHandler.AddPacketHandler(Packet.Messages.JOINCHANNEL, new Action<Packet>(HandleSwitchChannelPacket));
             packetHandler.AddPacketHandler(Packet.Messages.SETADMIN, new Action<Packet>(HandleSetAdminPacket));
             packetHandler.AddPacketHandler(Packet.Messages.SERVERMESSAGE, new Action<Packet>(HandleServerMessagePacket));
+            packetHandler.AddPacketHandler(Packet.Messages.SWAPCHANNEL, new Action<Packet>(HandleSwapChannelPacket));
+            packetHandler.AddPacketHandler(Packet.Messages.CONNECTCHANNEL, new Action<Packet>(HandleConnectChannelPacket));
+            packetHandler.AddPacketHandler(Packet.Messages.DISCONNECT, new Action<Packet>(HandleDisconnectPacket));
         }
 
         public int Connect(string serverIP, string nick)
         {
             if (IsConnected)
             {
+                Console.WriteLine("Already connected, disconnecting...");
                 Disconnect();
                 Thread.Sleep(100);
             }
@@ -126,7 +130,7 @@ namespace Voicer
         public override void PacketRecieved(Packet packet)
         {
             packetCount++;
-            Send(new Packet(Packet.Messages.RECIEVED, BitConverter.GetBytes((short)packet.Type)));
+            //Send(new Packet(Packet.Messages.RECIEVED, BitConverter.GetBytes((short)packet.Type)));
         }
 
         public override void Disconnecting()
@@ -158,11 +162,31 @@ namespace Voicer
 
         #region packet handeling
 
+        public void HandleDisconnectPacket(Packet packet)
+        {
+            server.UserLeaveChannel(server.GetUser(BitConverter.ToInt16(packet.Data, 0)));
+        }
+
+        public void HandleConnectChannelPacket(Packet packet)
+        {
+            User newUser = new User(Encoding.ASCII.GetString(packet.Data.Skip(4).ToArray()), BitConverter.ToInt16(packet.Data, 0));
+            server.UserAdd(newUser, BitConverter.ToInt16(packet.Data, 2));
+        }
+            
+
+        public void HandleSwapChannelPacket(Packet packet)
+        {
+            short clientId = BitConverter.ToInt16(packet.Data, 0);
+            short channelId = BitConverter.ToInt16(packet.Data, 2);
+
+            server.UserSwitchChannel(server.GetUser(clientId), server.GetChannel(channelID));
+        }
+
         public void HandleSwitchChannelPacket(Packet packet)
         {
             channelID = BitConverter.ToInt16(packet.Data, 0);
 
-            ChatMessageRecieved("--- Now speaking on channel " + this.channelID.ToString());
+            ChatMessageRecieved("--- Now speaking on channel " + channelID);
         }
 
         public void HandleKeepAlivePacket(Packet packet)
@@ -342,7 +366,7 @@ namespace Voicer
         public void RequetKey()
         {
             Console.WriteLine("Requesting new key from server...");
-            Send(new Packet(Packet.Messages.GETKEY, BitConverter.GetBytes(clientID)));
+            Send(new Packet(Packet.Messages.NEWKEY, BitConverter.GetBytes(clientID)));
         }
 
         public User FindClient(short id)

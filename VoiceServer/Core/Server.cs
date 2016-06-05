@@ -73,6 +73,7 @@ namespace VoiceServer
                 channelList.Add(new Channel("Channel 2"));
             }
 
+            Console.WriteLine("Packet Handlers");
             packetHandler.AddPacketHandler(Packet.Messages.VOICE, new Action<Packet>(HandleVoicePacket));
             packetHandler.AddPacketHandler(Packet.Messages.CHAT, new Action<Packet>(HandleChatPacket));
             packetHandler.AddPacketHandler(Packet.Messages.CONNECT, new Action<Packet>(HandleConnectPacket));
@@ -80,7 +81,6 @@ namespace VoiceServer
             packetHandler.AddPacketHandler(Packet.Messages.KEEPALIVE, new Action<Packet>(HandleKeepAlivePacket));
             packetHandler.AddPacketHandler(Packet.Messages.DISCONNECT, new Action<Packet>(HandleDisconnectPacket));
             packetHandler.AddPacketHandler(Packet.Messages.RECIEVED, new Action<Packet>(HandleRecievedPacket));
-            packetHandler.AddPacketHandler(Packet.Messages.CHANNEL, new Action<Packet>(HandleChannelPacket));
             packetHandler.AddPacketHandler(Packet.Messages.JOINCHANNEL, new Action<Packet>(HandleJoinChannelPacket));
             packetHandler.AddPacketHandler(Packet.Messages.NEWKEY, new Action<Packet>(HandleNewKeyPacket));
             packetHandler.AddPacketHandler(Packet.Messages.SETKEY, new Action<Packet>(HandleSetKeyPacket));
@@ -115,7 +115,7 @@ namespace VoiceServer
 
             client.SwitchChannel(channel);
 
-            UpdateUsers();
+            SendToClients(0, Packet.Messages.SWAPCHANNEL, BitConverter.GetBytes(senderId).Concat(BitConverter.GetBytes(channelId)).ToArray());
         }
 
         // Proccess and forword voice packets
@@ -138,12 +138,6 @@ namespace VoiceServer
             }
         }
 
-        protected void HandleChannelPacket(Packet packet)
-        {
-            ServerClient user = FindClient(BitConverter.ToInt16(packet.Data, 0));
-
-        }
-
         protected void HandleConnectPacket(Packet packet)
         {
             string name = Data.MakeSafe(Encoding.ASCII.GetString(packet.Data));
@@ -152,7 +146,8 @@ namespace VoiceServer
             newClient.ClientDisconnected += ClientDisconnect;
             newClient.ClientRequestPacket += ClientRequestPacket;
             newClient.SwitchChannel(FindChannel(defaultChannel));
-            UpdateUsers();
+            newClient.Send(new Packet(Packet.Messages.GETUSERS, SerializeUsers()));
+            SendToClients(0, Packet.Messages.CONNECTCHANNEL, BitConverter.GetBytes(newClient.ID).Concat(BitConverter.GetBytes(defaultChannel)).Concat(Encoding.ASCII.GetBytes(newClient.name)).ToArray(), newClient.ID);
 
             Console.WriteLine(newClient.name + " Has Connected.");
         }
@@ -238,7 +233,7 @@ namespace VoiceServer
             Console.WriteLine("Server Shutting Down");
             Administration.SaveServerKeys();
             SendToClients(0, Packet.Messages.SHUTDOWN, Encoding.ASCII.GetBytes(message));
-            this.Disconnect();
+            Disconnect();
         }
         
 
@@ -284,7 +279,7 @@ namespace VoiceServer
             if (channel != null)
             {
                 channel.clients.Remove(client);
-                UpdateUsers();
+                SendToClients(0, Packet.Messages.DISCONNECT, BitConverter.GetBytes(client.ID));
             }
         }
 

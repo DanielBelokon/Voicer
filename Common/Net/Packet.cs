@@ -14,23 +14,24 @@ namespace Voicer.Common.Net
         {
             // Client
             CONNECT = 1,
-            KEEPALIVE = 2,
-            DISCONNECT = 3,
-            RECIEVED = 4,
+            KEEPALIVE,
+            DISCONNECT,
+            RECIEVED,
 
             // Server
-            CONNECTED = 5,
-            GETUSERS = 6,
-            SHUTDOWN = 8,
+            CONNECTED,
+            GETUSERS,
+            SHUTDOWN,
+            SWAPCHANNEL, // Server to notify other users of user swapping channel
 
             // Shared
-            CHAT = 9, //Send/Recieve chat message
-            VOICE = 10, //Send/Recieve voice packet
-            JOINCHANNEL, // Switch to a channel
+            CHAT, //Send/Recieve chat message
+            VOICE, //Send/Recieve voice packet
+            JOINCHANNEL, // User requests to join channel, server to notify user swapped channel
+            CONNECTCHANNEL,
             MOVE, //Move a user from channel to channel (forced by a second user)
             BAN, //Ban a user from the server
             KICK, // kick user from the server
-            CHANNEL,
             SETKEY,
             NEWKEY,
             GETKEY,

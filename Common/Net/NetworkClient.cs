@@ -125,7 +125,7 @@ namespace Voicer.Common.Net
                 Packet packet = new Packet(data, remoteEP);
 
                 PacketRecieved(packet);
-                Console.WriteLine("Packet recieved: " + packet.Type.ToString());
+
                 // Process buffer
                 packetHandler.HandlePacket(packet);
             }

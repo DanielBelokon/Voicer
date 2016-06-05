@@ -103,7 +103,7 @@ namespace VoiceServer
                 ClientRequestPacket(this, id);
         }
 
-        public void Disconnected()
+        public override void Disconnecting()
         {
             clientAdress = null;
             OnClientDisconnected(ClosingReason.ClientDisconnect);
@@ -163,7 +163,7 @@ namespace VoiceServer
         {
             key = Administration.AddUserKey();
             Console.WriteLine("SETKEY: " + this.name + ", KEY: " + this.key + ", ISADMIN: " + this.admin.ToString());
-            Send(new Packet(Packet.Messages.GETKEY, Encoding.ASCII.GetBytes(key)));
+            Send(new Packet(Packet.Messages.SETKEY, Encoding.ASCII.GetBytes(key)));
         }
 
         public void RequestKey()

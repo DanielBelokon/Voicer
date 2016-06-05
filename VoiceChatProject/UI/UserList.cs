@@ -35,6 +35,12 @@ namespace Voicer.UI
         public void SetServer(Server server)
         {
             this.server = server;
+            server.UserlistUpdate += OnUserlistUpdate;
+            CreateItems();
+        }
+
+        public void OnUserlistUpdate(object sender, EventArgs e)
+        {
             CreateItems();
         }
 

@@ -6,10 +6,10 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
-using Voicer.Properties;
-using Voicer.Sound;
+using VoicerClient.Properties;
+using VoicerClient.Sound;
 
-namespace Voicer.UI
+namespace VoicerClient.UI
 {
     public partial class Form_Preferences : Form
     {

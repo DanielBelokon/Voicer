@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using NAudio.Wave;
 
-namespace Voicer.Sound
+namespace VoicerClient.Sound
 {
     public class Audio : IDisposable
     {

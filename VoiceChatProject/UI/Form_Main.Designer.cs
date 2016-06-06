@@ -1,4 +1,4 @@
-﻿namespace Voicer.UI
+﻿namespace VoicerClient.UI
 {
     partial class Voicer_Main
     {
@@ -49,7 +49,7 @@
             this.ChatBox_BackPanel = new System.Windows.Forms.Panel();
             this.chatbox_Output = new System.Windows.Forms.RichTextBox();
             this.ChatArea_BackPanel = new System.Windows.Forms.Panel();
-            this.ClientListControl = new Voicer.UI.UserList();
+            this.ClientListControl = new VoicerClient.UI.UserList();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer_Chat)).BeginInit();
             this.splitContainer_Chat.Panel1.SuspendLayout();

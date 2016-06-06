@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Voicer.UI;
+using VoicerClient.UI;
 
-namespace Voicer
+namespace VoicerClient
 {
     static class Program
     {

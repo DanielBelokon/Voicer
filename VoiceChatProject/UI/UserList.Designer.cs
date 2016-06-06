@@ -1,4 +1,4 @@
-﻿namespace Voicer.UI
+﻿namespace VoicerClient.UI
 {
     partial class UserList
     {

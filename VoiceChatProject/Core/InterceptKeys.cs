@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.Windows.Forms;
 
-namespace Voicer
+namespace VoicerClient
 {
     /// <summary>
     /// A class used to detect keyboard presses with low level hooks.

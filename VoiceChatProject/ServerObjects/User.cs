@@ -1,8 +1,8 @@
 ﻿using System;
-using Voicer.Sound;
+using VoicerClient.Sound;
 
 // Represents the users present on the server (Remote clients)
-namespace Voicer.ServerObjects
+namespace VoicerClient.ServerObjects
 {
     public class User : IDisposable, IComparable
     {

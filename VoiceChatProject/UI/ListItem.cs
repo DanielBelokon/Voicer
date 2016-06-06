@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
-namespace Voicer.UI
+namespace VoicerClient.UI
 {
     public partial class ListItem : UserControl
     {

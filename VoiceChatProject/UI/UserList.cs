@@ -6,9 +6,9 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
-using Voicer.ServerObjects;
+using VoicerClient.ServerObjects;
 
-namespace Voicer.UI
+namespace VoicerClient.UI
 {
     public partial class UserList : UserControl
     {

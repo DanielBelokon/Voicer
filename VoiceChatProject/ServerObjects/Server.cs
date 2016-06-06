@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Voicer.ServerObjects
+namespace VoicerClient.ServerObjects
 {
     public class Server : IDisposable
     {

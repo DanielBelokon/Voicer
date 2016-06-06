@@ -9,11 +9,11 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
 
-using Voicer.Properties;
-using Voicer.Sound;
-using Voicer.ServerObjects;
+using VoicerClient.Properties;
+using VoicerClient.Sound;
+using VoicerClient.ServerObjects;
 
-namespace Voicer.UI
+namespace VoicerClient.UI
 {
     public partial class Voicer_Main : Form
     {

@@ -9,9 +9,9 @@ using System.Threading;
 using System.IO;
 using Voicer.Common.Data;
 using Voicer.Common.Net;
-using Voicer.ServerObjects;
+using VoicerClient.ServerObjects;
 
-namespace Voicer
+namespace VoicerClient
 {
     public class Client : NetworkClient
     {

@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Voicer.Properties {
+namespace VoicerClient.Properties {
     using System;
     
     

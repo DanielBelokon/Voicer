@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Configuration;
 
-namespace Voicer.Properties
+namespace VoicerClient.Properties
 {
 
 

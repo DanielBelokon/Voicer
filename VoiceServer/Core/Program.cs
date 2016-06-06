@@ -51,10 +51,10 @@ namespace VoiceServer
                 string[] inputs = command.Split(' ');
                 DoCommand(inputs[0], inputs);
 
-            } while (server.IsOnline);
+            } while (server.IsListening);
             Administration.SaveServerKeys();
             Console.WriteLine("Exited");
-            return;
+            Console.ReadLine();
         }
 
         static void DoCommand(string command, string[] prms)

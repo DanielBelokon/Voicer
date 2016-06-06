@@ -54,7 +54,7 @@ namespace Voicer
         private IPEndPoint endPoint;
         private IPAddress serverAddress;
 
-        public Client() : base(9998, ServerPort)
+        public Client() : base()
         {
             // Add message handlers to all packet types.
             packetHandler.AddPacketHandler(Packet.Messages.CHAT, new Action<Packet>(HandleChatPacket));
@@ -89,7 +89,7 @@ namespace Voicer
                 endPoint = new IPEndPoint(serverAddress, ServerPort);
                 Console.WriteLine("Starting up sockets...");
                 Connect(endPoint);
-                StartListen();
+                StartListen(9998);
                 // Remove any unwanted characters that could disrupt the functions of the server.
                 nickname = Data.MakeSafe(nick);
 
@@ -117,7 +117,7 @@ namespace Voicer
         }
 
         // Check if client still recieving packets
-        public override void Tick()
+        protected override void Tick()
         {
             if (packetCount == 0)
             {

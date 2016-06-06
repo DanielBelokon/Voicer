@@ -5,7 +5,7 @@ namespace Voicer.Common.Data
 {
     public class MessageHandler
     {
-        private Dictionary<short, Delegate> messageHandler = new Dictionary<short, Delegate>();
+        private Dictionary<short, Delegate> _messageHandlers = new Dictionary<short, Delegate>();
 
         public enum ChannelCommands : short
         {
@@ -16,24 +16,24 @@ namespace Voicer.Common.Data
 
         public void AddHandler(short key, Delegate function)
         {
-            if (messageHandler.ContainsKey(key))
-                messageHandler.Remove(key);
+            if (_messageHandlers.ContainsKey(key))
+                _messageHandlers.Remove(key);
 
-            messageHandler.Add(key, function);
+            _messageHandlers.Add(key, function);
         }
 
         public void RemoveHandler(short key)
         {
-            if (messageHandler.ContainsKey(key))
-                messageHandler.Remove(key);
+            if (_messageHandlers.ContainsKey(key))
+                _messageHandlers.Remove(key);
         }
 
         public void Handle(short key, params object[] parametars)
         {
-            if (messageHandler.ContainsKey(key))
+            if (_messageHandlers.ContainsKey(key))
             {
                 Delegate function;
-                messageHandler.TryGetValue(key, out function);
+                _messageHandlers.TryGetValue(key, out function);
 
                 function.DynamicInvoke(parametars);
             }

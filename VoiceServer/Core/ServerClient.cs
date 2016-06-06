@@ -61,7 +61,7 @@ namespace VoiceServer
         public enum ClosingReason { TimedOut, ClientDisconnect, Kicked, Banned };
 
         // Constructor
-        public ServerClient(IPAddress addrs, string name, short id) : base(9999, ClientPort)
+        public ServerClient(IPAddress addrs, string name, short id) : base()
         {
             joinPower = 1;
             this.name = name;
@@ -75,7 +75,7 @@ namespace VoiceServer
             StartTick(4);
         }
 
-        public override void Tick()
+        protected override void Tick()
         {
             Send(new Packet(Packet.Messages.KEEPALIVE));
             UpdatesMissed++;

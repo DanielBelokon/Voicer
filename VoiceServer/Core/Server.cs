@@ -17,7 +17,7 @@ namespace VoiceServer
     {
         // List of connected (online) clients
         //public List<ServerClient> clientList = null;
-        public List<Channel> channelList = null;
+        public List<Channel> channels = null;
         public short defaultChannel = 1;
         
         const int KeyLength = 6;
@@ -26,41 +26,32 @@ namespace VoiceServer
         private short lastID = 0;
 
         private int port;
-        protected bool online;
         protected Thread listenThread;
         protected UdpClient listenSocket;
         protected AutoResetEvent packetRecieved;
 
-        public bool IsOnline
-        {
-            get
-            {
-                return this.online;
-            }
-        }
-
         // Constructor
-        public Server (int port = 9999) : base(9999, 0)
+        public Server (int port = 9999) : base()
         {
-            channelList = new List<Channel>();
+            channels = new List<Channel>();
             //clientList = new List<ServerClient>();
             try
             {
                 Administration.LoadServerKeys();
                 StartTick();
-                string[] channels = File.ReadAllLines(Environment.CurrentDirectory + "serverlayout.txt");
+                string[] channels = File.ReadAllLines(Environment.CurrentDirectory + "/serverlayout.txt");
                 string defaultChan = channels.First();
                 defaultChannel = short.Parse(defaultChan);
 
                 if (defaultChannel > channels.Count() - 1 || defaultChannel < 1)
                 {
                     Console.WriteLine("Default channel " + defaultChannel + " not found, reverting to first channel.");
-                    this.defaultChannel = 1;
+                    defaultChannel = 1;
                 }
 
                 foreach (string stringChannel in channels.Skip(1))
                 {
-                    channelList.Add(new Channel(stringChannel));
+                    this.channels.Add(new Channel(stringChannel));
                 }
 
             }
@@ -68,9 +59,9 @@ namespace VoiceServer
             catch (FileNotFoundException)
             {
                 Console.WriteLine("serverlayout.txt file not found -- creating default channels.");
-                channelList.Add(new Channel("Main"));
-                channelList.Add(new Channel("Channel 1"));
-                channelList.Add(new Channel("Channel 2"));
+                channels.Add(new Channel("Main"));
+                channels.Add(new Channel("Channel 1"));
+                channels.Add(new Channel("Channel 2"));
             }
 
             Console.WriteLine("Packet Handlers");
@@ -88,10 +79,10 @@ namespace VoiceServer
 
             this.port = port;
             // Start listening for incoming packets and requests
-            StartListen();
+            StartListen(port);
         }
 
-        public override void Tick()
+        protected override void Tick()
         {
             Administration.SaveServerKeys();
         }
@@ -292,7 +283,7 @@ namespace VoiceServer
         // Returns client with specified ID from connected client list.
         public ServerClient FindClient(short id)
         {
-            foreach (Channel channel in channelList)
+            foreach (Channel channel in channels)
             {
                 foreach (ServerClient client in channel.clients)
                 {
@@ -308,7 +299,7 @@ namespace VoiceServer
 
         private Channel FindChannel(ServerClient client)
         {
-            foreach (Channel channel in channelList)
+            foreach (Channel channel in channels)
             {
                 if (channel.clients.Contains(client))
                     return channel;
@@ -318,7 +309,7 @@ namespace VoiceServer
 
         private Channel FindChannel(short channelId)
         {
-            foreach (Channel channel in channelList)
+            foreach (Channel channel in channels)
             {
                 if (channel.channelId == channelId)
                     return channel;
@@ -334,7 +325,7 @@ namespace VoiceServer
             name = name.ToLower();
             name = name.Trim();
 
-            foreach (Channel channel in channelList)
+            foreach (Channel channel in channels)
             {
                 foreach (ServerClient client in channel.clients)
                 {
@@ -354,7 +345,7 @@ namespace VoiceServer
         {
             if (channelId == 0)
             {
-                foreach (Channel channel in channelList)
+                foreach (Channel channel in channels)
                 {
                     channel.Send(message, data, filterID);
                 }
@@ -362,7 +353,7 @@ namespace VoiceServer
             }
             else
             {
-                foreach (Channel channel in channelList)
+                foreach (Channel channel in channels)
                 {
                     if (channel.channelId == channelId)
                     {
@@ -380,17 +371,11 @@ namespace VoiceServer
             SendToClients(channelId, Packet.Messages.CHAT, data);
         }
 
-        // Send an update packet with the current connected users to the connected users
-        protected void UpdateUsers()
-        {
-            SendToClients(0, Packet.Messages.GETUSERS, SerializeUsers()); 
-        }
-
         public byte[] SerializeUsers()
         {
             string serialized = "";
 
-            foreach (Channel channel in channelList)
+            foreach (Channel channel in channels)
             {
                 serialized += "|" + channel.ToString() + ",";
                 foreach (ServerClient client in channel.clients)

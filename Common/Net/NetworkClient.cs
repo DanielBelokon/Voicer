@@ -11,95 +11,122 @@ namespace Voicer.Common.Net
 {
     public class NetworkClient : IDisposable
     {
-        private UdpClient listenSocket;
-        private AutoResetEvent packetRecieved;
-        private bool bConnected;
+
+        #region Listen Related Members
+        private Thread _listenThread;
+        private UdpClient _listenSocket;
+        private AutoResetEvent _packetRecieved;
+        private int _localPort;
+        protected PacketHandler packetHandler;
+        private bool _isListening;
+        public bool IsListening
+        {
+            get
+            {
+                return _isListening;
+            }
+
+            set
+            {
+                _isListening = value;
+            }
+        }
+        #endregion
+
+        #region Sending Related Members
+        private Socket _senderSocket;
+        private bool _isConnected;
         public bool IsConnected
         {
             get
-            { return bConnected; }
+            { return _isConnected; }
             private set
-            { bConnected = value; }
+            { _isConnected = value; }
         }
-        private bool bListening;
-        public PacketHandler packetHandler;
-        private int localPort;
+        #endregion
 
-        private Socket senderSocket;
-        private Thread tickThread;
+        #region Tick Related Members
+        private int _tickInterval;
+        private bool _shouldTick;
+        private Thread _tickThread;
+        #endregion
 
-        private int tickInterval = 5;
-        private bool bTick;
-        private Thread listenThread;
-
-        public NetworkClient(int localPort, int remotePort)
+        public NetworkClient()
         {
-            this.localPort = localPort;
             packetHandler = new PacketHandler();
         }
 
-        // Sending
+        /// <summary>
+        /// Connect to a remote endpoint in order to send messages.
+        /// </summary>
+        /// <param name="remoteEP">The remote endpoint to connect to.</param>
         public void Connect(IPEndPoint remoteEP)
         {
-            senderSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            _senderSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
 
-            senderSocket.Connect(remoteEP);
-            bConnected = true;
+            _senderSocket.Connect(remoteEP);
+            _isConnected = true;
         }
 
         #region Tick
         public void StartTick(int interval = 5)
         {
-            tickInterval = interval;
-            tickThread = new Thread(DoTick);
-            bTick = true;
-            tickThread.Start();
+            _tickInterval = interval;
+            _tickThread = new Thread(DoTick);
+            _shouldTick = true;
+            _tickThread.Start();
         }
 
         public void StopTick()
         {
-
+            _shouldTick = false;
+            if (_tickThread != null)
+            {
+                _tickThread.Abort();
+                _tickThread = null;
+            }
         }
 
         private void DoTick()
         {
             do
             {
-                Thread.Sleep(tickInterval * 1000);
+                Thread.Sleep(_tickInterval * 1000);
                 Tick();
 
-            } while (bTick);
+            } while (_shouldTick);
         }
 
-        public virtual void Tick()
+        protected virtual void Tick()
         {
 
         }
         #endregion Tick
 
 
-        public void StartListen()
+        public void StartListen(int localPort)
         {
-            packetRecieved = new AutoResetEvent(true);
-            listenThread = new Thread(BeginReceive);
-            listenThread.Start(); 
+            _packetRecieved = new AutoResetEvent(true);
+            _localPort = localPort;
+            _listenThread = new Thread(BeginReceive);
+            _listenThread.Start(); 
         }
         // Recieve any and all packets that come into the listening port, seperate them by type, and forward to appropriate functions
         private void BeginReceive()
         {
             // Provides the local endpoint (port) for the UDP client to listen on.
-            IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, localPort);
-            bListening = true;
+            IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, _localPort);
+            _isListening = true;
             // Listening socket
-            listenSocket = new UdpClient(localEndPoint);
+            _listenSocket = new UdpClient(localEndPoint);
 
             try
             {
                 
-                while (bListening)
+                while (_isListening)
                 {
-                    packetRecieved.WaitOne();
-                    listenSocket.BeginReceive(new AsyncCallback(OnReceived), null);
+                    _packetRecieved.WaitOne();
+                    _listenSocket.BeginReceive(new AsyncCallback(OnReceived), null);
                 }
             }
             catch (SocketException)
@@ -116,11 +143,11 @@ namespace Voicer.Common.Net
             {
                 byte[] data;
 
-                if (!bListening)
+                if (!_isListening)
                     return;
 
-                data = listenSocket.EndReceive(ar, ref remoteEP);
-                packetRecieved.Set();
+                data = _listenSocket.EndReceive(ar, ref remoteEP);
+                _packetRecieved.Set();
 
                 Packet packet = new Packet(data, remoteEP);
 
@@ -144,29 +171,16 @@ namespace Voicer.Common.Net
         public void Disconnect()
         {
             Disconnecting();
-            bConnected = false;
-            bListening = false;
+            _isConnected = false;
+            _isListening = false;
             try
             {
-                if (tickThread != null)
-                {
-                    tickThread.Abort();
-                    tickThread = null;
-                }
-
-                if (listenSocket != null && listenThread != null)
-                {
-                    listenSocket.Close();
-                    listenThread.Abort();
-                    listenSocket = null;
-                    listenThread = null;
-                }
-
-                if (senderSocket != null)
-                    senderSocket.Close();
+                StopTick();
+                StopRecieve();
+                StopListen();
             }
-            catch (Exception e)
-            { Console.WriteLine("Error closing connections in {0}: \n{1}\n\n {2}", GetType(), e.GetType(),e.Message); }
+            catch (SocketException e)
+            { Console.WriteLine("Exception closing connections in {0}: \n{1} \n\n {2}", GetType(), e.GetType(), e.StackTrace); }
         }
 
         public virtual void Disconnecting()
@@ -174,9 +188,39 @@ namespace Voicer.Common.Net
             
         }
 
+        public void StopListen()
+        {
+            if (_listenSocket != null)
+            {
+                _listenSocket.Close();
+                _listenSocket = null;
+            }
+
+            if (_listenThread != null)
+            {
+                _listenThread.Abort();
+                _listenThread = null;
+            }
+
+            if (_packetRecieved != null)
+            {
+                _packetRecieved.Dispose();
+                _packetRecieved = null;
+            }
+        }
+
+        public void StopRecieve()
+        {
+            if (_senderSocket != null)
+            {
+                _senderSocket.Close();
+                _senderSocket = null;
+            }
+        }
+
         public void Send(Packet packet)
         {
-            if (!bConnected)
+            if (!_isConnected)
                 return;
 
             try
@@ -188,7 +232,7 @@ namespace Voicer.Common.Net
                 e.SetBuffer(buffer, 0, buffer.Length);
                 e.Completed += new EventHandler<SocketAsyncEventArgs>(MessageSent);
                 MessageSending(packet.Type);
-                senderSocket.SendAsync(e);
+                _senderSocket.SendAsync(e);
             }
             catch (SocketException exc)
             {

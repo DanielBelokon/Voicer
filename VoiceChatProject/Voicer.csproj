@@ -63,9 +63,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Server\Server.cs" />
+    <Compile Include="ServerObjects\Server.cs" />
     <Compile Include="Sound\AudioPlayer.cs" />
-    <Compile Include="Server\Channel.cs" />
+    <Compile Include="ServerObjects\Channel.cs" />
     <Compile Include="Core\Client.cs" />
     <Compile Include="UI\Form_Preferences.cs">
       <SubType>Form</SubType>
@@ -89,7 +89,7 @@
     </Compile>
     <Compile Include="Core\Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Server\User.cs" />
+    <Compile Include="ServerObjects\User.cs" />
     <Compile Include="UI\ListItem.cs">
       <SubType>UserControl</SubType>
     </Compile>

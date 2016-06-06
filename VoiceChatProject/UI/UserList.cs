@@ -76,7 +76,7 @@ namespace Voicer.UI
             }
             catch (NullReferenceException)
             {
-                Console.WriteLine("An error occured while creating channels...");
+                Console.WriteLine("An error occured while creating channels.");
             }
             finally
             {

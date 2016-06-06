@@ -46,11 +46,14 @@ namespace Voicer.UI
 
         private void CreateItems()
         {
+
             if (InvokeRequired)
             {
                 Invoke(new MethodInvoker(CreateItems));
                 return;
             }
+            int verScrollValue = VerticalScroll.Value;
+            AutoScroll = false;
             SuspendLayout();
             ClearUsers();
             itemControlList = new List<ListItem>();
@@ -78,6 +81,8 @@ namespace Voicer.UI
             finally
             {
                 ResumeLayout();
+                VerticalScroll.Value = verScrollValue;
+                AutoScroll = true;
             }
         }
 
@@ -87,7 +92,7 @@ namespace Voicer.UI
             newItem.SetText(text);
             newItem.id = itemId;
             newItem.Location = new Point(hierarchy * 25, itemId * (newItem.Size.Height + 4));
-            newItem.Anchor = (AnchorStyles.Left | AnchorStyles.Right);
+            newItem.Anchor = (AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top);
             newItem.Click += new EventHandler(OnListItemClicked);
             itemControlList.Add(newItem);
             Controls.Add(newItem);

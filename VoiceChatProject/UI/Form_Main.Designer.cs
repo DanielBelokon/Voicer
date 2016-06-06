@@ -43,13 +43,13 @@
             this.chatbox_Input = new System.Windows.Forms.RichTextBox();
             this.ChatTab = new System.Windows.Forms.TabControl();
             this.ChatTab_Server = new System.Windows.Forms.TabPage();
+            this.panel1 = new System.Windows.Forms.Panel();
+            this.chatbox_Server = new System.Windows.Forms.RichTextBox();
             this.ChatTab_Channel = new System.Windows.Forms.TabPage();
             this.ChatBox_BackPanel = new System.Windows.Forms.Panel();
             this.chatbox_Output = new System.Windows.Forms.RichTextBox();
             this.ChatArea_BackPanel = new System.Windows.Forms.Panel();
             this.ClientListControl = new Voicer.UI.UserList();
-            this.chatbox_Server = new System.Windows.Forms.RichTextBox();
-            this.panel1 = new System.Windows.Forms.Panel();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer_Chat)).BeginInit();
             this.splitContainer_Chat.Panel1.SuspendLayout();
@@ -62,10 +62,10 @@
             this.InputBox_BackPanel.SuspendLayout();
             this.ChatTab.SuspendLayout();
             this.ChatTab_Server.SuspendLayout();
+            this.panel1.SuspendLayout();
             this.ChatTab_Channel.SuspendLayout();
             this.ChatBox_BackPanel.SuspendLayout();
             this.ChatArea_BackPanel.SuspendLayout();
-            this.panel1.SuspendLayout();
             this.SuspendLayout();
             // 
             // menuStrip1
@@ -239,6 +239,24 @@
             this.ChatTab_Server.TabIndex = 0;
             this.ChatTab_Server.Text = "Server";
             // 
+            // panel1
+            // 
+            this.panel1.BackColor = System.Drawing.SystemColors.ControlDark;
+            this.panel1.Controls.Add(this.chatbox_Server);
+            this.panel1.Location = new System.Drawing.Point(5, 6);
+            this.panel1.Name = "panel1";
+            this.panel1.Size = new System.Drawing.Size(1094, 83);
+            this.panel1.TabIndex = 1;
+            // 
+            // chatbox_Server
+            // 
+            this.chatbox_Server.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.chatbox_Server.Location = new System.Drawing.Point(1, 1);
+            this.chatbox_Server.Name = "chatbox_Server";
+            this.chatbox_Server.Size = new System.Drawing.Size(1092, 81);
+            this.chatbox_Server.TabIndex = 0;
+            this.chatbox_Server.Text = "";
+            // 
             // ChatTab_Channel
             // 
             this.ChatTab_Channel.BackColor = System.Drawing.Color.GhostWhite;
@@ -286,32 +304,15 @@
             // 
             // ClientListControl
             // 
-            this.ClientListControl.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.ClientListControl.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.ClientListControl.AutoScroll = true;
             this.ClientListControl.AutoScrollMinSize = new System.Drawing.Size(100, 100);
             this.ClientListControl.Location = new System.Drawing.Point(3, 3);
             this.ClientListControl.Name = "ClientListControl";
-            this.ClientListControl.Size = new System.Drawing.Size(350, 437);
+            this.ClientListControl.Size = new System.Drawing.Size(348, 418);
             this.ClientListControl.TabIndex = 0;
-            // 
-            // chatbox_Server
-            // 
-            this.chatbox_Server.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.chatbox_Server.Location = new System.Drawing.Point(1, 1);
-            this.chatbox_Server.Name = "chatbox_Server";
-            this.chatbox_Server.Size = new System.Drawing.Size(1092, 81);
-            this.chatbox_Server.TabIndex = 0;
-            this.chatbox_Server.Text = "";
-            // 
-            // panel1
-            // 
-            this.panel1.BackColor = System.Drawing.SystemColors.ControlDark;
-            this.panel1.Controls.Add(this.chatbox_Server);
-            this.panel1.Location = new System.Drawing.Point(5, 6);
-            this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(1094, 83);
-            this.panel1.TabIndex = 1;
             // 
             // Voicer_Main
             // 
@@ -340,10 +341,10 @@
             this.InputBox_BackPanel.ResumeLayout(false);
             this.ChatTab.ResumeLayout(false);
             this.ChatTab_Server.ResumeLayout(false);
+            this.panel1.ResumeLayout(false);
             this.ChatTab_Channel.ResumeLayout(false);
             this.ChatBox_BackPanel.ResumeLayout(false);
             this.ChatArea_BackPanel.ResumeLayout(false);
-            this.panel1.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 

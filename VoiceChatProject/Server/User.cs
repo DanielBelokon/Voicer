@@ -4,7 +4,7 @@ using Voicer.Sound;
 // Represents the users present on the server (Remote clients)
 namespace Voicer.ServerObjects
 {
-    public class User : IDisposable
+    public class User : IDisposable, IComparable
     {
 
         private short id;
@@ -70,6 +70,19 @@ namespace Voicer.ServerObjects
             }
             id = 0;
             name = null;
+        }
+
+        public int CompareTo(object obj)
+        {
+            try
+            {
+                User user = (User)obj;
+                return name.CompareTo(user.name);
+            }
+            catch (InvalidCastException)
+            {
+                throw new InvalidOperationException("Cannot compare object of type " + obj.GetType().ToString() + " to User.");
+            }
         }
     }
 }

@@ -36,8 +36,9 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoScroll = true;
             this.AutoScrollMinSize = new System.Drawing.Size(100, 100);
+            this.DoubleBuffered = true;
             this.Name = "UserList";
-            this.Size = new System.Drawing.Size(383, 463);
+            this.Size = new System.Drawing.Size(296, 463);
             this.Load += new System.EventHandler(this.UserList_Load);
             this.ResumeLayout(false);
 

@@ -23,7 +23,7 @@ namespace VoiceServer
         const int KeyLength = 6;
         //public Dictionary<string, ServerClient> clients = null;
 
-        private short lastID = 0;
+        private short CLIENT_NEXTID = 0;
 
         private int port;
         protected Thread listenThread;
@@ -133,12 +133,12 @@ namespace VoiceServer
         {
             string name = Data.MakeSafe(Encoding.ASCII.GetString(packet.Data));
 
-            ServerClient newClient = new ServerClient(packet.Sender.Address, name, (short)(lastID = ++lastID));
+            ServerClient newClient = new ServerClient(packet.Sender.Address, name, ++CLIENT_NEXTID);
             newClient.ClientDisconnected += ClientDisconnect;
             newClient.ClientRequestPacket += ClientRequestPacket;
             newClient.SwitchChannel(FindChannel(defaultChannel));
             newClient.Send(new Packet(Packet.Messages.GETUSERS, SerializeUsers()));
-            SendToClients(0, Packet.Messages.CONNECTCHANNEL, BitConverter.GetBytes(newClient.ID).Concat(BitConverter.GetBytes(defaultChannel)).Concat(Encoding.ASCII.GetBytes(newClient.name)).ToArray(), newClient.ID);
+            SendToClients(0, Packet.Messages.CONNECTCHANNEL, BitConverter.GetBytes(newClient.Id).Concat(BitConverter.GetBytes(defaultChannel)).Concat(Encoding.ASCII.GetBytes(newClient.name)).ToArray(), newClient.Id);
 
             Console.WriteLine(newClient.name + " Has Connected.");
         }
@@ -270,7 +270,7 @@ namespace VoiceServer
             if (channel != null)
             {
                 channel.clients.Remove(client);
-                SendToClients(0, Packet.Messages.DISCONNECT, BitConverter.GetBytes(client.ID));
+                SendToClients(0, Packet.Messages.DISCONNECT, BitConverter.GetBytes(client.Id));
             }
         }
 
@@ -287,7 +287,7 @@ namespace VoiceServer
             {
                 foreach (ServerClient client in channel.clients)
                 {
-                    if (client.ID == id)
+                    if (client.Id == id)
                     {
                         return client;
                     }

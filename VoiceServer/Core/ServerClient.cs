@@ -31,17 +31,26 @@ namespace VoiceServer
         public event ClientRequestUpdateDelegate ClientRequestPacket;
 
         public string name;
-        public short ID;
+        private short _id;
+        public short Id
+        {
+            get
+            { return _id; }
+            private set
+            {
+                _id = value;
+            }
+        }
 
         public int joinPower;
-        private bool admin;
-        private string key;
+        private bool _isAdmin;
+        private string _key;
 
         public bool IsAdmin
         {
             get
             {
-                return this.admin;
+                return this._isAdmin;
             }
             private set { }
         }
@@ -50,7 +59,7 @@ namespace VoiceServer
         {
             get
             {
-                return this.key;
+                return this._key;
             }
             private set {}
         }
@@ -65,13 +74,13 @@ namespace VoiceServer
         {
             joinPower = 1;
             this.name = name;
-            ID = id;
+            _id = id;
             clientAdress = addrs;
             UpdatesMissed = 0;
             IPEndPoint clientEndpoint = new IPEndPoint(clientAdress, ClientPort);
             PacketsAwaitingConfirmation = new List<short>();
             Connect(clientEndpoint);
-            Send(new Packet(Packet.Messages.CONNECTED, BitConverter.GetBytes(ID)));
+            Send(new Packet(Packet.Messages.CONNECTED, BitConverter.GetBytes(Id)));
             StartTick(4);
         }
 
@@ -115,7 +124,7 @@ namespace VoiceServer
 
             // 'Encode' the seperators that are used so they don't interfire with the program
             serialized.Append(Data.Serialize(name));
-            serialized.Append("," + this.ID);
+            serialized.Append("," + this.Id);
 
             return serialized.ToString();
         }
@@ -139,21 +148,21 @@ namespace VoiceServer
         public void SetAdmin(bool state)
         {
             if (state)
-                Administration.SetAdmin(key);
-            else Administration.RemoveAdmin(key);
+                Administration.SetAdmin(_key);
+            else Administration.RemoveAdmin(_key);
 
             Send(new Packet(Packet.Messages.SETADMIN, BitConverter.GetBytes(state)));
-            admin = true;
+            _isAdmin = true;
         }
 
         public void SetKey(string key)
         {
             if (Administration.KeyExists(key))
             {
-                this.key = key;
-                admin = Administration.IsAdmin(key);
-                Send(new Packet(Packet.Messages.SETADMIN, BitConverter.GetBytes(admin)));
-                Console.WriteLine("SETKEY: " + this.name + ", KEY: " + this.key + ", ISADMIN: " + this.admin.ToString());
+                this._key = key;
+                _isAdmin = Administration.IsAdmin(key);
+                Send(new Packet(Packet.Messages.SETADMIN, BitConverter.GetBytes(_isAdmin)));
+                Console.WriteLine("SETKEY: " + this.name + ", KEY: " + this._key + ", ISADMIN: " + this._isAdmin.ToString());
             }
             else
                 NewKey();
@@ -161,9 +170,9 @@ namespace VoiceServer
 
         public void NewKey()
         {
-            key = Administration.AddUserKey();
-            Console.WriteLine("SETKEY: " + this.name + ", KEY: " + this.key + ", ISADMIN: " + this.admin.ToString());
-            Send(new Packet(Packet.Messages.SETKEY, Encoding.ASCII.GetBytes(key)));
+            _key = Administration.AddUserKey();
+            Console.WriteLine("SETKEY: " + this.name + ", KEY: " + this._key + ", ISADMIN: " + this._isAdmin.ToString());
+            Send(new Packet(Packet.Messages.SETKEY, Encoding.ASCII.GetBytes(_key)));
         }
 
         public void RequestKey()

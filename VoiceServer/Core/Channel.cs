@@ -78,7 +78,7 @@ namespace VoiceServer
         {
             foreach (ServerClient client in clients)
             {
-                if (client.ID != filterId)
+                if (client.Id != filterId)
                     client.Send(new Packet(message, data));
             }
         }

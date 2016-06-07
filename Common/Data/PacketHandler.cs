@@ -12,7 +12,7 @@ namespace Voicer.Common.Data
             packet.Dispose();
         }
 
-        public void AddPacketHandler(Packet.Messages messageEnum, Delegate function)
+        public void AddPacketHandler(Messages messageEnum, Delegate function)
         {
             AddHandler((short)messageEnum, function);
         }

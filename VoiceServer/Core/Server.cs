@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Net.Sockets;
-using System.Net;
 using System.Threading;
 using Voicer.Common.Data;
 using Voicer.Common.Net;
@@ -65,17 +64,17 @@ namespace VoiceServer
             }
 
             Console.WriteLine("Packet Handlers");
-            packetHandler.AddPacketHandler(Packet.Messages.VOICE, new Action<Packet>(HandleVoicePacket));
-            packetHandler.AddPacketHandler(Packet.Messages.CHAT, new Action<Packet>(HandleChatPacket));
-            packetHandler.AddPacketHandler(Packet.Messages.CONNECT, new Action<Packet>(HandleConnectPacket));
-            packetHandler.AddPacketHandler(Packet.Messages.CONNECTED, new Action<Packet>(HandleConnectedPacket));
-            packetHandler.AddPacketHandler(Packet.Messages.KEEPALIVE, new Action<Packet>(HandleKeepAlivePacket));
-            packetHandler.AddPacketHandler(Packet.Messages.DISCONNECT, new Action<Packet>(HandleDisconnectPacket));
-            packetHandler.AddPacketHandler(Packet.Messages.RECIEVED, new Action<Packet>(HandleRecievedPacket));
-            packetHandler.AddPacketHandler(Packet.Messages.JOINCHANNEL, new Action<Packet>(HandleJoinChannelPacket));
-            packetHandler.AddPacketHandler(Packet.Messages.NEWKEY, new Action<Packet>(HandleNewKeyPacket));
-            packetHandler.AddPacketHandler(Packet.Messages.SETKEY, new Action<Packet>(HandleSetKeyPacket));
-            packetHandler.AddPacketHandler(Packet.Messages.SERVERMESSAGE, new Action<Packet>(HandleServerMessagePacket));
+            packetHandler.AddPacketHandler(Messages.VOICE, new Action<Packet>(HandleVoicePacket));
+            packetHandler.AddPacketHandler(Messages.CHAT, new Action<Packet>(HandleChatPacket));
+            packetHandler.AddPacketHandler(Messages.CONNECT, new Action<Packet>(HandleConnectPacket));
+            packetHandler.AddPacketHandler(Messages.CONNECTED, new Action<Packet>(HandleConnectedPacket));
+            packetHandler.AddPacketHandler(Messages.KEEPALIVE, new Action<Packet>(HandleKeepAlivePacket));
+            packetHandler.AddPacketHandler(Messages.DISCONNECT, new Action<Packet>(HandleDisconnectPacket));
+            packetHandler.AddPacketHandler(Messages.RECIEVED, new Action<Packet>(HandleRecievedPacket));
+            packetHandler.AddPacketHandler(Messages.JOINCHANNEL, new Action<Packet>(HandleJoinChannelPacket));
+            packetHandler.AddPacketHandler(Messages.NEWKEY, new Action<Packet>(HandleNewKeyPacket));
+            packetHandler.AddPacketHandler(Messages.SETKEY, new Action<Packet>(HandleSetKeyPacket));
+            packetHandler.AddPacketHandler(Messages.SERVERMESSAGE, new Action<Packet>(HandleServerMessagePacket));
 
             this.port = port;
             // Start listening for incoming packets and requests
@@ -105,8 +104,8 @@ namespace VoiceServer
                 return;
 
             client.SwitchChannel(channel);
-
-            SendToClients(0, Packet.Messages.SWAPCHANNEL, BitConverter.GetBytes(senderId).Concat(BitConverter.GetBytes(channelId)).ToArray(), senderId);
+            SignedPacket sendingPacket = new SignedPacket(Messages.SWAPCHANNEL, senderId, BitConverter.GetBytes(channelId).ToArray());
+            SendToClients(0, sendingPacket, senderId);
         }
 
         // Proccess and forword voice packets
@@ -114,7 +113,7 @@ namespace VoiceServer
         {
             short senderId = BitConverter.ToInt16(packet.Data, 0);
             short channelId = BitConverter.ToInt16(packet.Data, 2);
-            SendToClients(channelId, Packet.Messages.VOICE, packet.Data, senderId);
+            SendToClients(channelId, packet, senderId);
         }
 
         protected void HandleChatPacket(Packet packet)
@@ -124,7 +123,7 @@ namespace VoiceServer
             ServerClient client = FindClient(senderId);
             if (client != null)
             {
-                SendToClients(channelId, Packet.Messages.CHAT, packet.Data);
+                SendToClients(channelId, packet);
                 Console.WriteLine(client.name + ": " + Encoding.ASCII.GetString(packet.Data.Skip(4).ToArray()));
             }
         }
@@ -137,8 +136,9 @@ namespace VoiceServer
             newClient.ClientDisconnected += ClientDisconnect;
             newClient.ClientRequestPacket += ClientRequestPacket;
             newClient.SwitchChannel(FindChannel(defaultChannel));
-            newClient.Send(new Packet(Packet.Messages.GETUSERS, SerializeUsers()));
-            SendToClients(0, Packet.Messages.CONNECTCHANNEL, BitConverter.GetBytes(newClient.Id).Concat(BitConverter.GetBytes(defaultChannel)).Concat(Encoding.ASCII.GetBytes(newClient.name)).ToArray(), newClient.Id);
+            newClient.Send(new Packet(Messages.GETUSERS, SerializeUsers()));
+            SignedPacket newPacket = new SignedPacket(Messages.CONNECTCHANNEL, newClient.Id, BitConverter.GetBytes(defaultChannel).Concat(Encoding.ASCII.GetBytes(newClient.name)).ToArray());
+            SendToClients(0, newPacket, newClient.Id);
 
             Console.WriteLine(newClient.name + " Has Connected.");
         }
@@ -209,10 +209,10 @@ namespace VoiceServer
                 if (user.IsAdmin)
                 {
                     Console.WriteLine(user.name + ": " + message);
-                    SendToClients(0, Packet.Messages.SERVERMESSAGE, packet.Data);
+                    SendToClients(0, packet);
                 }
                 else
-                    user.Send(new Packet(Packet.Messages.SERVERMESSAGE, BitConverter.GetBytes(0).Concat(Encoding.ASCII.GetBytes("Insuffciant Permissions.")).ToArray()));
+                    user.Send(new Packet(Messages.SERVERMESSAGE, BitConverter.GetBytes(0).Concat(Encoding.ASCII.GetBytes("Insuffciant Permissions.")).ToArray()));
             }
         }
 
@@ -223,7 +223,8 @@ namespace VoiceServer
         {
             Console.WriteLine("Server Shutting Down");
             Administration.SaveServerKeys();
-            SendToClients(0, Packet.Messages.SHUTDOWN, Encoding.ASCII.GetBytes(message));
+            
+            SendToClients(0, new Packet(Messages.SHUTDOWN, Encoding.ASCII.GetBytes(message)));
             Disconnect();
         }
         
@@ -270,14 +271,14 @@ namespace VoiceServer
             if (channel != null)
             {
                 channel.clients.Remove(client);
-                SendToClients(0, Packet.Messages.DISCONNECT, BitConverter.GetBytes(client.Id));
+                SendToClients(0, new SignedPacket(Messages.DISCONNECT, client.Id));
             }
         }
 
         public void ClientRequestPacket(ServerClient client, short packetId)
         {
-            if (packetId == (short)Packet.Messages.GETUSERS)
-                client.Send(new Packet(Packet.Messages.GETUSERS, SerializeUsers()));
+            if (packetId == (short)Messages.GETUSERS)
+                client.Send(new Packet(Messages.GETUSERS, SerializeUsers()));
         }
 
         // Returns client with specified ID from connected client list.
@@ -341,13 +342,13 @@ namespace VoiceServer
         }
 
         // Send a packet to all connected clients
-        public void SendToClients(short channelId, Packet.Messages message, byte[] data = null, short filterID = -1, bool updateConfirmationRequest = false)
+        public void SendToClients(short channelId, IPacket packet, short filterID = -1, bool updateConfirmationRequest = false)
         {
             if (channelId == 0)
             {
                 foreach (Channel channel in channels)
                 {
-                    channel.Send(message, data, filterID);
+                    channel.Send(packet, filterID);
                 }
                 return;
             }
@@ -357,7 +358,7 @@ namespace VoiceServer
                 {
                     if (channel.channelId == channelId)
                     {
-                        channel.Send(message, data, filterID);
+                        channel.Send(packet, filterID);
                         return;
                     }
                 }
@@ -366,9 +367,8 @@ namespace VoiceServer
 
         public void SendChat(short channelId, short clientId, string message)
         {
-            byte[] data = BitConverter.GetBytes(clientId).Concat(Encoding.ASCII.GetBytes(message)).ToArray();
-
-            SendToClients(channelId, Packet.Messages.CHAT, data);
+            SignedPacket packet = new SignedPacket(Messages.CHAT, clientId, Encoding.ASCII.GetBytes(message).ToArray());
+            SendToClients(channelId, packet);
         }
 
         public byte[] SerializeUsers()

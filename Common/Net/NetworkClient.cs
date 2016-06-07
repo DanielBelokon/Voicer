@@ -219,7 +219,7 @@ namespace Voicer.Common.Net
             }
         }
 
-        public void Send(Packet packet)
+        public void Send(IPacket packet)
         {
             if (!_isConnected)
                 return;
@@ -246,7 +246,7 @@ namespace Voicer.Common.Net
             e.Dispose();
         }
 
-        public virtual void MessageSending(Packet.Messages message)
+        public virtual void MessageSending(Messages message)
         {
 
         }

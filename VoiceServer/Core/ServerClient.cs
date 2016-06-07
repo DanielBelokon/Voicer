@@ -80,13 +80,13 @@ namespace VoiceServer
             IPEndPoint clientEndpoint = new IPEndPoint(clientAdress, ClientPort);
             PacketsAwaitingConfirmation = new List<short>();
             Connect(clientEndpoint);
-            Send(new Packet(Packet.Messages.CONNECTED, BitConverter.GetBytes(Id)));
+            Send(new Packet(Messages.CONNECTED, BitConverter.GetBytes(Id)));
             StartTick(4);
         }
 
         protected override void Tick()
         {
-            Send(new Packet(Packet.Messages.KEEPALIVE));
+            Send(new Packet(Messages.KEEPALIVE));
             UpdatesMissed++;
 
             if (UpdatesMissed > MAX_UPDATES_MISSED)
@@ -101,7 +101,7 @@ namespace VoiceServer
             PacketsAwaitingConfirmation.Clear();
         }
 
-        public override void MessageSending(Packet.Messages message)
+        public override void MessageSending(Messages message)
         {
             PacketsAwaitingConfirmation.Add((short)message);
         }
@@ -151,7 +151,7 @@ namespace VoiceServer
                 Administration.SetAdmin(_key);
             else Administration.RemoveAdmin(_key);
 
-            Send(new Packet(Packet.Messages.SETADMIN, BitConverter.GetBytes(state)));
+            Send(new Packet(Messages.SETADMIN, BitConverter.GetBytes(state)));
             _isAdmin = true;
         }
 
@@ -161,7 +161,7 @@ namespace VoiceServer
             {
                 this._key = key;
                 _isAdmin = Administration.IsAdmin(key);
-                Send(new Packet(Packet.Messages.SETADMIN, BitConverter.GetBytes(_isAdmin)));
+                Send(new Packet(Messages.SETADMIN, BitConverter.GetBytes(_isAdmin)));
                 Console.WriteLine("SETKEY: " + this.name + ", KEY: " + this._key + ", ISADMIN: " + this._isAdmin.ToString());
             }
             else
@@ -172,12 +172,12 @@ namespace VoiceServer
         {
             _key = Administration.AddUserKey();
             Console.WriteLine("SETKEY: " + this.name + ", KEY: " + this._key + ", ISADMIN: " + this._isAdmin.ToString());
-            Send(new Packet(Packet.Messages.SETKEY, Encoding.ASCII.GetBytes(_key)));
+            Send(new Packet(Messages.SETKEY, Encoding.ASCII.GetBytes(_key)));
         }
 
         public void RequestKey()
         {
-            Send(new Packet(Packet.Messages.GETKEY, Encoding.ASCII.GetBytes(Administration.ServerKey)));
+            Send(new Packet(Messages.GETKEY, Encoding.ASCII.GetBytes(Administration.ServerKey)));
         }
     }
 }

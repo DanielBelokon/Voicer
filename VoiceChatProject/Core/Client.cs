@@ -57,20 +57,20 @@ namespace VoicerClient
         public Client() : base()
         {
             // Add message handlers to all packet types.
-            packetHandler.AddPacketHandler(Packet.Messages.CHAT, new Action<Packet>(HandleChatPacket));
-            packetHandler.AddPacketHandler(Packet.Messages.GETUSERS, new Action<Packet>(HandleUserListPacket));
-            packetHandler.AddPacketHandler(Packet.Messages.KEEPALIVE, new Action<Packet>(HandleKeepAlivePacket));
-            packetHandler.AddPacketHandler(Packet.Messages.SHUTDOWN, new Action<Packet>(HandleShutdownPacket));
-            packetHandler.AddPacketHandler(Packet.Messages.VOICE, new Action<Packet>(HandleSoundPacket));
-            packetHandler.AddPacketHandler(Packet.Messages.CONNECTED, new Action<Packet>(HandleConnectedPacket));
-            packetHandler.AddPacketHandler(Packet.Messages.GETKEY, new Action<Packet>(HandleGetKeyPacket));
-            packetHandler.AddPacketHandler(Packet.Messages.SETKEY, new Action<Packet>(HandleSetKeyPacket));
-            packetHandler.AddPacketHandler(Packet.Messages.JOINCHANNEL, new Action<Packet>(HandleJoinChannelPacket));
-            packetHandler.AddPacketHandler(Packet.Messages.SETADMIN, new Action<Packet>(HandleSetAdminPacket));
-            packetHandler.AddPacketHandler(Packet.Messages.SERVERMESSAGE, new Action<Packet>(HandleServerMessagePacket));
-            packetHandler.AddPacketHandler(Packet.Messages.SWAPCHANNEL, new Action<Packet>(HandleSwapChannelPacket));
-            packetHandler.AddPacketHandler(Packet.Messages.CONNECTCHANNEL, new Action<Packet>(HandleConnectChannelPacket));
-            packetHandler.AddPacketHandler(Packet.Messages.DISCONNECT, new Action<Packet>(HandleDisconnectPacket));
+            packetHandler.AddPacketHandler(Messages.CHAT, new Action<Packet>(HandleChatPacket));
+            packetHandler.AddPacketHandler(Messages.GETUSERS, new Action<Packet>(HandleUserListPacket));
+            packetHandler.AddPacketHandler(Messages.KEEPALIVE, new Action<Packet>(HandleKeepAlivePacket));
+            packetHandler.AddPacketHandler(Messages.SHUTDOWN, new Action<Packet>(HandleShutdownPacket));
+            packetHandler.AddPacketHandler(Messages.VOICE, new Action<Packet>(HandleSoundPacket));
+            packetHandler.AddPacketHandler(Messages.CONNECTED, new Action<Packet>(HandleConnectedPacket));
+            packetHandler.AddPacketHandler(Messages.GETKEY, new Action<Packet>(HandleGetKeyPacket));
+            packetHandler.AddPacketHandler(Messages.SETKEY, new Action<Packet>(HandleSetKeyPacket));
+            packetHandler.AddPacketHandler(Messages.JOINCHANNEL, new Action<Packet>(HandleJoinChannelPacket));
+            packetHandler.AddPacketHandler(Messages.SETADMIN, new Action<Packet>(HandleSetAdminPacket));
+            packetHandler.AddPacketHandler(Messages.SERVERMESSAGE, new Action<Packet>(HandleServerMessagePacket));
+            packetHandler.AddPacketHandler(Messages.SWAPCHANNEL, new Action<Packet>(HandleSwapChannelPacket));
+            packetHandler.AddPacketHandler(Messages.CONNECTCHANNEL, new Action<Packet>(HandleConnectChannelPacket));
+            packetHandler.AddPacketHandler(Messages.DISCONNECT, new Action<Packet>(HandleDisconnectPacket));
         }
 
         public int Connect(string serverIP, string nick)
@@ -101,7 +101,7 @@ namespace VoicerClient
 
                 Console.WriteLine("Initializing connection...");
                 // Send message informing the server the client is connecting, including the client's nickname.
-                Send(new Packet(Packet.Messages.CONNECT, message));
+                Send(new Packet(Messages.CONNECT, message));
                 return 0;
             }
 
@@ -130,7 +130,7 @@ namespace VoicerClient
         public override void PacketRecieved(Packet packet)
         {
             packetCount++;
-            //Send(new Packet(Packet.Messages.RECIEVED, BitConverter.GetBytes((short)packet.Type)));
+            //Send(new Packet(Messages.RECIEVED, BitConverter.GetBytes((short)packet.Type)));
         }
 
         public override void Disconnecting()
@@ -143,7 +143,7 @@ namespace VoicerClient
             if (IsConnected)
             {
                 string serverString = serverAddress.ToString();
-                Send(new Packet(Packet.Messages.DISCONNECT, BitConverter.GetBytes(clientID)));
+                Send(new Packet(Messages.DISCONNECT, BitConverter.GetBytes(clientID)));
                 Console.WriteLine("Disconnected from " + serverString);
             }
         }
@@ -151,13 +151,13 @@ namespace VoicerClient
         public void SendChatMessage(string message)
         {
             byte[] buffer = BitConverter.GetBytes(this.clientID).Concat(BitConverter.GetBytes(channelID)).Concat(Encoding.ASCII.GetBytes(message)).ToArray();
-            Send(new Packet(Packet.Messages.CHAT, buffer));
+            Send(new Packet(Messages.CHAT, buffer));
         }
 
         public void SendVoiceMessage(byte[] data)
         {
             byte[] buffer = BitConverter.GetBytes(clientID).Concat(BitConverter.GetBytes(channelID)).Concat(data).ToArray();
-            Send(new Packet(Packet.Messages.VOICE, buffer));
+            Send(new Packet(Messages.VOICE, buffer));
         }
 
         #region packet handeling
@@ -191,7 +191,7 @@ namespace VoicerClient
 
         public void HandleKeepAlivePacket(Packet packet)
         {
-            Send(new Packet(Packet.Messages.KEEPALIVE, BitConverter.GetBytes(clientID)));
+            Send(new SignedPacket(Messages.KEEPALIVE, clientID));
         }
 
         public void HandleShutdownPacket(Packet packet)
@@ -207,7 +207,7 @@ namespace VoicerClient
             Console.WriteLine("Connected - " + endPoint.ToString());
             ChangeStatus("Connected to " + endPoint.ToString());
 
-            Send(new Packet(Packet.Messages.CONNECTED, BitConverter.GetBytes(clientID)));
+            Send(new SignedPacket(Messages.CONNECTED, clientID));
         }
 
         public void HandleSoundPacket(Packet packet)
@@ -304,7 +304,7 @@ namespace VoicerClient
                 }
 
                 clientKey = serverKeys[serverKeys.IndexOf(serverKey) + 1];
-                Send(new Packet(Packet.Messages.SETKEY, BitConverter.GetBytes(clientID).Concat(Encoding.ASCII.GetBytes(clientKey)).ToArray()));
+                Send(new SignedPacket(Messages.SETKEY, clientID, Encoding.ASCII.GetBytes(clientKey).ToArray()));
                 Console.WriteLine("Sending Client Key: " + clientKey);
             }
             catch (ArgumentOutOfRangeException)
@@ -366,7 +366,7 @@ namespace VoicerClient
         public void RequetKey()
         {
             Console.WriteLine("Requesting new key from server...");
-            Send(new Packet(Packet.Messages.NEWKEY, BitConverter.GetBytes(clientID)));
+            Send(new SignedPacket(Messages.NEWKEY, clientID));
         }
 
         public User FindClient(short id)
@@ -394,15 +394,15 @@ namespace VoicerClient
         {
             if (isAdmin)
             {
-                byte[] buffer = BitConverter.GetBytes(this.clientID).Concat(Encoding.ASCII.GetBytes(message)).ToArray();
-                Send(new Packet(Packet.Messages.SERVERMESSAGE, buffer));
+                byte[] buffer = Encoding.ASCII.GetBytes(message).ToArray();
+                Send(new SignedPacket(Messages.SERVERMESSAGE, clientID, buffer));
             }
         }
 
         public void JoinChannel(short channelID)
         {
-            byte[] buffer = BitConverter.GetBytes(clientID).Concat(BitConverter.GetBytes(channelID)).ToArray();
-            Send(new Packet(Packet.Messages.JOINCHANNEL, buffer));
+            byte[] buffer = BitConverter.GetBytes(channelID).ToArray();
+            Send(new SignedPacket(Messages.JOINCHANNEL, clientID, buffer));
         }
     }
 }

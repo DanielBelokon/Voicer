@@ -68,18 +68,18 @@ namespace VoiceServer
             if ((clients.Count >= channelLimit || channelLimit == 0) && client.joinPower > this.joinPower)
             {
                 clients.Add(client);
-                client.Send(new Packet(Packet.Messages.JOINCHANNEL, BitConverter.GetBytes(this.channelId)));
+                client.Send(new Packet(Messages.JOINCHANNEL, BitConverter.GetBytes(this.channelId)));
                 if (ClientJoinedChannel != null)
                     ClientJoinedChannel(this, client);
             }
         }
 
-        public void Send(Packet.Messages message, byte[] data, short filterId)
+        public void Send(IPacket packet, short filterId)
         {
             foreach (ServerClient client in clients)
             {
                 if (client.Id != filterId)
-                    client.Send(new Packet(message, data));
+                    client.Send(packet);
             }
         }
 

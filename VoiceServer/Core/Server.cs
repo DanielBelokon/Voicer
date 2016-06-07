@@ -106,7 +106,7 @@ namespace VoiceServer
 
             client.SwitchChannel(channel);
 
-            SendToClients(0, Packet.Messages.SWAPCHANNEL, BitConverter.GetBytes(senderId).Concat(BitConverter.GetBytes(channelId)).ToArray());
+            SendToClients(0, Packet.Messages.SWAPCHANNEL, BitConverter.GetBytes(senderId).Concat(BitConverter.GetBytes(channelId)).ToArray(), senderId);
         }
 
         // Proccess and forword voice packets

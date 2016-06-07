@@ -103,7 +103,7 @@ namespace Voicer.Common.Net
         }
         #endregion Tick
 
-
+        #region listen
         public void StartListen(int localPort)
         {
             _packetRecieved = new AutoResetEvent(true);
@@ -152,7 +152,7 @@ namespace Voicer.Common.Net
                 Packet packet = new Packet(data, remoteEP);
 
                 PacketRecieved(packet);
-
+                Console.WriteLine(packet.Type.ToString());
                 // Process buffer
                 packetHandler.HandlePacket(packet);
             }
@@ -167,6 +167,7 @@ namespace Voicer.Common.Net
         {
 
         }
+        #endregion listen
 
         public void Disconnect()
         {

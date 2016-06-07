@@ -65,7 +65,7 @@ namespace VoicerClient
             packetHandler.AddPacketHandler(Packet.Messages.CONNECTED, new Action<Packet>(HandleConnectedPacket));
             packetHandler.AddPacketHandler(Packet.Messages.GETKEY, new Action<Packet>(HandleGetKeyPacket));
             packetHandler.AddPacketHandler(Packet.Messages.SETKEY, new Action<Packet>(HandleSetKeyPacket));
-            packetHandler.AddPacketHandler(Packet.Messages.JOINCHANNEL, new Action<Packet>(HandleSwitchChannelPacket));
+            packetHandler.AddPacketHandler(Packet.Messages.JOINCHANNEL, new Action<Packet>(HandleJoinChannelPacket));
             packetHandler.AddPacketHandler(Packet.Messages.SETADMIN, new Action<Packet>(HandleSetAdminPacket));
             packetHandler.AddPacketHandler(Packet.Messages.SERVERMESSAGE, new Action<Packet>(HandleServerMessagePacket));
             packetHandler.AddPacketHandler(Packet.Messages.SWAPCHANNEL, new Action<Packet>(HandleSwapChannelPacket));
@@ -182,10 +182,10 @@ namespace VoicerClient
             server.UserSwitchChannel(server.GetUser(clientId), server.GetChannel(channelID));
         }
 
-        public void HandleSwitchChannelPacket(Packet packet)
+        public void HandleJoinChannelPacket(Packet packet)
         {
             channelID = BitConverter.ToInt16(packet.Data, 0);
-
+            server.UserSwitchChannel(server.GetUser(clientID), server.GetChannel(channelID));
             ChatMessageRecieved("--- Now speaking on channel " + channelID);
         }
 

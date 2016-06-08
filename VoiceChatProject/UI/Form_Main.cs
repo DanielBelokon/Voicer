@@ -17,9 +17,9 @@ namespace VoicerClient.UI
 {
     public partial class Voicer_Main : Form
     {
-        Client localClient;
+        private Client localClient;
 
-        Form_Preferences preferences;
+        private Form_Preferences fmrPreferences;
 
         public static Keys PTT_BUTTON = Keys.X;
 
@@ -41,9 +41,9 @@ namespace VoicerClient.UI
             InitializeComponent();
             localClient = new Client();
             recorder = new Audio();
-            ClientListControl.ListItemClicked += ItemList_Clicked;
+            ClientListControl.ListItemDoubleClicked += ItemList_Clicked;
 
-            preferences = new Form_Preferences(this);
+            fmrPreferences = new Form_Preferences(this);
 
             // Called when the user list needs to be updated
             localClient.UserListUpdated += OnChannelListUpdate;
@@ -85,7 +85,6 @@ namespace VoicerClient.UI
             InterceptKeys.UnHookKeyboard();
             StartRecording();
         }
-
 
         public void StartRecording()
         {
@@ -219,12 +218,12 @@ namespace VoicerClient.UI
 
         private void preferencesToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (!preferences.Visible)
+            if (!fmrPreferences.Visible)
             {
-                preferences = new Form_Preferences(this);
-                preferences.Show();
+                fmrPreferences = new Form_Preferences(this);
+                fmrPreferences.Show();
             }
-            else preferences.BringToFront();
+            else fmrPreferences.BringToFront();
         }
 
         private void disconnectToolStripMenuItem_Click(object sender, EventArgs e)

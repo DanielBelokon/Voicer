@@ -18,7 +18,7 @@ namespace VoicerClient.UI
 
         private List<ListItem> itemControlList;
 
-        public event EventHandler ListItemClicked;
+        public event EventHandler ListItemDoubleClicked;
 
         public UserList()
         {
@@ -93,15 +93,41 @@ namespace VoicerClient.UI
             newItem.id = itemId;
             newItem.Location = new Point(hierarchy * 25, itemId * (newItem.Size.Height + 4));
             newItem.Anchor = (AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top);
-            newItem.Click += new EventHandler(OnListItemClicked);
+            newItem.MouseDown += OnListItemClicked;
+            newItem.MouseDoubleClick += OnListItemDoubleClick;
+            newItem.ContextMenuStrip = itemMenuStrip;
+            itemMenuStrip.ItemClicked += OnContextmenuItemClicked;
             itemControlList.Add(newItem);
             Controls.Add(newItem);
 
             return newItem;
         }
 
-        private void OnListItemClicked(object sender, EventArgs e)
+        public void OnContextmenuItemClicked(object sender, ToolStripItemClickedEventArgs e)
         {
+            if(e.ClickedItem == deleteChannelToolStripMenuItem)
+            {
+
+            }
+            else if (e.ClickedItem == editChannelToolStripMenuItem)
+            {
+
+            }
+            else if(e.ClickedItem == subChannelToolStripMenuItem)
+            {
+
+            }
+            else if(e.ClickedItem == childChannelToolStripMenuItem)
+            {
+
+            }
+        }
+
+        private void OnListItemClicked(object sender, MouseEventArgs e)
+        {
+            if (e.Button != MouseButtons.Left)
+                return;
+
             ListItem clicked = (ListItem)sender;
 
             foreach (ListItem item in itemControlList)
@@ -116,8 +142,17 @@ namespace VoicerClient.UI
             clicked.SelectItem();
 
             // Raise the click event so other classes can interact with it
-            if (ListItemClicked != null)
-                ListItemClicked(clicked, EventArgs.Empty); 
+        }
+
+        private void OnListItemDoubleClick(object sender, MouseEventArgs e)
+        {
+            if (e.Button != MouseButtons.Left)
+                return;
+
+            ListItem clicked = (ListItem)sender;
+
+            if (ListItemDoubleClicked != null)
+                ListItemDoubleClicked(clicked, EventArgs.Empty);
         }
 
         public void UserSwapChannel()

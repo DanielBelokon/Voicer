@@ -152,7 +152,7 @@ namespace Voicer.Common.Net
                 Packet packet = new Packet(data, remoteEP);
 
                 PacketRecieved(packet);
-                Console.WriteLine(packet.Type.ToString());
+                //Console.WriteLine(packet.Type.ToString());
                 // Process buffer
                 packetHandler.HandlePacket(packet);
             }

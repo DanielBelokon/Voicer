@@ -218,10 +218,13 @@ namespace VoicerClient
             byte[] soundData = packet.Data.Skip(4).ToArray();
             if (channelID != channelId)
                 return;
-
+            
             User user = FindClient(clientId);
             if (user != null)
             {
+                if (!user.IsPlaying)
+                    user.StartSound();
+
                 user.AddSound(soundData);
             }
         }

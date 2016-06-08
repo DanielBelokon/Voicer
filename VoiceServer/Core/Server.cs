@@ -38,17 +38,17 @@ namespace VoiceServer
             {
                 Administration.LoadServerKeys();
                 StartTick();
-                string[] channels = File.ReadAllLines(Environment.CurrentDirectory + "/serverlayout.txt");
-                string defaultChan = channels.First();
+                string[] channelString = File.ReadAllLines(Environment.CurrentDirectory + "/serverlayout.txt");
+                string defaultChan = channelString.First();
                 defaultChannel = short.Parse(defaultChan);
 
-                if (defaultChannel > channels.Count() - 1 || defaultChannel < 1)
+                if (defaultChannel > channelString.Count() - 1 || defaultChannel < 1)
                 {
                     Console.WriteLine("Default channel " + defaultChannel + " not found, reverting to first channel.");
                     defaultChannel = 1;
                 }
 
-                foreach (string stringChannel in channels.Skip(1))
+                foreach (string stringChannel in channelString.Skip(1))
                 {
                     this.channels.Add(new Channel(stringChannel));
                 }

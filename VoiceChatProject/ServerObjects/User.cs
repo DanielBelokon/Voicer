@@ -34,6 +34,16 @@ namespace VoicerClient.ServerObjects
             }
         }
 
+        public bool IsPlaying
+        {
+            get
+            {
+                if (clientAudio != null)
+                    return clientAudio.IsPlaying;
+                else return false;
+            }
+        }
+
         private Audio clientAudio;
 
         public User(string nick, short ID)
@@ -59,7 +69,9 @@ namespace VoicerClient.ServerObjects
         public void AddSound(byte[] data)
         {
             if (clientAudio.IsPlaying)
+            {
                 clientAudio.AddSound(data);
+            }
         }
 
         public void Dispose()

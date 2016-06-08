@@ -44,8 +44,8 @@
             // 
             // Pref_MicThreshhold
             // 
-            this.Pref_MicThreshhold.BackColor = System.Drawing.SystemColors.GradientInactiveCaption;
-            this.Pref_MicThreshhold.Location = new System.Drawing.Point(387, 6);
+            this.Pref_MicThreshhold.BackColor = System.Drawing.Color.GhostWhite;
+            this.Pref_MicThreshhold.Location = new System.Drawing.Point(6, 7);
             this.Pref_MicThreshhold.Maximum = 100;
             this.Pref_MicThreshhold.Name = "Pref_MicThreshhold";
             this.Pref_MicThreshhold.Size = new System.Drawing.Size(242, 45);
@@ -88,11 +88,12 @@
             this.tab_Audio.Size = new System.Drawing.Size(635, 440);
             this.tab_Audio.TabIndex = 1;
             this.tab_Audio.Text = "Audio";
+            this.tab_Audio.Click += new System.EventHandler(this.tab_Audio_Click);
             // 
             // radioButton_Detection
             // 
             this.radioButton_Detection.AutoSize = true;
-            this.radioButton_Detection.Location = new System.Drawing.Point(395, 108);
+            this.radioButton_Detection.Location = new System.Drawing.Point(14, 81);
             this.radioButton_Detection.Name = "radioButton_Detection";
             this.radioButton_Detection.Size = new System.Drawing.Size(101, 17);
             this.radioButton_Detection.TabIndex = 3;
@@ -104,7 +105,7 @@
             // 
             this.radioButton_ptt.AutoSize = true;
             this.radioButton_ptt.Checked = true;
-            this.radioButton_ptt.Location = new System.Drawing.Point(395, 85);
+            this.radioButton_ptt.Location = new System.Drawing.Point(14, 58);
             this.radioButton_ptt.Name = "radioButton_ptt";
             this.radioButton_ptt.Size = new System.Drawing.Size(89, 17);
             this.radioButton_ptt.TabIndex = 2;
@@ -115,10 +116,10 @@
             // 
             // Pref_PTTButton
             // 
-            this.Pref_PTTButton.BackColor = System.Drawing.SystemColors.ActiveCaption;
+            this.Pref_PTTButton.BackColor = System.Drawing.Color.GhostWhite;
             this.Pref_PTTButton.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.Pref_PTTButton.Font = new System.Drawing.Font("Arial", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Pref_PTTButton.Location = new System.Drawing.Point(490, 69);
+            this.Pref_PTTButton.Location = new System.Drawing.Point(254, 7);
             this.Pref_PTTButton.Name = "Pref_PTTButton";
             this.Pref_PTTButton.Size = new System.Drawing.Size(133, 33);
             this.Pref_PTTButton.TabIndex = 1;

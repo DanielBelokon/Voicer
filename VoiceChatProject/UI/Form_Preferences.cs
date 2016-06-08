@@ -38,6 +38,7 @@ namespace VoicerClient.UI
         private void Button_SaveSettings_Click(object sender, EventArgs e)
         {
             Settings.Default.Save();
+            this.Close();
         }
 
         private void Button_ResetSettings_Click(object sender, EventArgs e)
@@ -66,7 +67,7 @@ namespace VoicerClient.UI
 
             waitingForKeypress = false;
             this.KeyPreview = false;
-            Pref_PTTButton.BackColor = Color.LightGray;
+            Pref_PTTButton.BackColor = Color.GhostWhite;
         }
 
         private void radioButtons_Changed(object sender, EventArgs e)
@@ -85,6 +86,11 @@ namespace VoicerClient.UI
                 mainForm.DisablePTT();
             }
             
+        }
+
+        private void tab_Audio_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

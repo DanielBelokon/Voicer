@@ -37,7 +37,6 @@
             this.StatusLabel = new System.Windows.Forms.Label();
             this.splitContainer_Chat = new System.Windows.Forms.SplitContainer();
             this.splitContainer_Users = new System.Windows.Forms.SplitContainer();
-            this.ClientListControl = new VoicerClient.UI.UserList();
             this.label1 = new System.Windows.Forms.Label();
             this.SendChatButton = new System.Windows.Forms.Button();
             this.InputBox_BackPanel = new System.Windows.Forms.Panel();
@@ -50,6 +49,7 @@
             this.ChatBox_BackPanel = new System.Windows.Forms.Panel();
             this.chatbox_Output = new System.Windows.Forms.RichTextBox();
             this.ChatArea_BackPanel = new System.Windows.Forms.Panel();
+            this.ClientListControl = new VoicerClient.UI.UserList();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer_Chat)).BeginInit();
             this.splitContainer_Chat.Panel1.SuspendLayout();
@@ -91,14 +91,14 @@
             // connectToToolStripMenuItem
             // 
             this.connectToToolStripMenuItem.Name = "connectToToolStripMenuItem";
-            this.connectToToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.connectToToolStripMenuItem.Size = new System.Drawing.Size(142, 22);
             this.connectToToolStripMenuItem.Text = "Connect to...";
             this.connectToToolStripMenuItem.Click += new System.EventHandler(this.connectToToolStripMenuItem_Click);
             // 
             // disconnectToolStripMenuItem
             // 
             this.disconnectToolStripMenuItem.Name = "disconnectToolStripMenuItem";
-            this.disconnectToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.disconnectToolStripMenuItem.Size = new System.Drawing.Size(142, 22);
             this.disconnectToolStripMenuItem.Text = "Disconnect";
             this.disconnectToolStripMenuItem.Click += new System.EventHandler(this.disconnectToolStripMenuItem_Click);
             // 
@@ -169,18 +169,6 @@
             this.splitContainer_Users.TabIndex = 0;
             this.splitContainer_Users.TabStop = false;
             // 
-            // ClientListControl
-            // 
-            this.ClientListControl.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.ClientListControl.AutoScroll = true;
-            this.ClientListControl.AutoScrollMinSize = new System.Drawing.Size(100, 100);
-            this.ClientListControl.Location = new System.Drawing.Point(3, 3);
-            this.ClientListControl.Name = "ClientListControl";
-            this.ClientListControl.Size = new System.Drawing.Size(348, 418);
-            this.ClientListControl.TabIndex = 0;
-            // 
             // label1
             // 
             this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
@@ -193,6 +181,8 @@
             // 
             // SendChatButton
             // 
+            this.SendChatButton.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.SendChatButton.BackColor = System.Drawing.SystemColors.GradientInactiveCaption;
             this.SendChatButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.SendChatButton.Location = new System.Drawing.Point(1069, 131);
@@ -216,7 +206,8 @@
             // 
             // chatbox_Input
             // 
-            this.chatbox_Input.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            this.chatbox_Input.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.chatbox_Input.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.chatbox_Input.Font = new System.Drawing.Font("Arial Rounded MT Bold", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
@@ -231,6 +222,9 @@
             // ChatTab
             // 
             this.ChatTab.Alignment = System.Windows.Forms.TabAlignment.Bottom;
+            this.ChatTab.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.ChatTab.Controls.Add(this.ChatTab_Server);
             this.ChatTab.Controls.Add(this.ChatTab_Channel);
             this.ChatTab.HotTrack = true;
@@ -313,6 +307,18 @@
             this.ChatArea_BackPanel.Name = "ChatArea_BackPanel";
             this.ChatArea_BackPanel.Size = new System.Drawing.Size(1122, 611);
             this.ChatArea_BackPanel.TabIndex = 7;
+            // 
+            // ClientListControl
+            // 
+            this.ClientListControl.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.ClientListControl.AutoScroll = true;
+            this.ClientListControl.AutoScrollMinSize = new System.Drawing.Size(100, 100);
+            this.ClientListControl.Location = new System.Drawing.Point(3, 3);
+            this.ClientListControl.Name = "ClientListControl";
+            this.ClientListControl.Size = new System.Drawing.Size(348, 418);
+            this.ClientListControl.TabIndex = 0;
             // 
             // Voicer_Main
             // 

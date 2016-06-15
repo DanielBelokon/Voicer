@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VoicerServer", "VoiceServer
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Common\Common.csproj", "{31A41AE8-53F9-44BE-9213-2FC64D78DB92}"
 EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "ClientSetup", "ClientSetup\ClientSetup.vdproj", "{E83061A3-5D26-4CF1-A8B6-96D495FB8274}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,8 @@ Global
 		{31A41AE8-53F9-44BE-9213-2FC64D78DB92}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{31A41AE8-53F9-44BE-9213-2FC64D78DB92}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{31A41AE8-53F9-44BE-9213-2FC64D78DB92}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E83061A3-5D26-4CF1-A8B6-96D495FB8274}.Debug|Any CPU.ActiveCfg = Debug
+		{E83061A3-5D26-4CF1-A8B6-96D495FB8274}.Release|Any CPU.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -130,7 +130,10 @@ namespace VoicerClient
         public override void PacketRecieved(Packet packet)
         {
             packetCount++;
-            //Send(new Packet(Messages.RECIEVED, BitConverter.GetBytes((short)packet.Type)));
+            if (packet.Type != Messages.VOICE)
+            {
+                Send(new SignedPacket(Messages.RECIEVED, this.clientID, BitConverter.GetBytes((short)packet.Type)));
+            }
         }
 
         public override void Disconnecting()
@@ -191,7 +194,7 @@ namespace VoicerClient
 
         public void HandleKeepAlivePacket(Packet packet)
         {
-            Send(new SignedPacket(Messages.KEEPALIVE, clientID));
+            //Send(new SignedPacket(Messages.KEEPALIVE, clientID));
         }
 
         public void HandleShutdownPacket(Packet packet)

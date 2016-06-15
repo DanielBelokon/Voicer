@@ -58,7 +58,8 @@ namespace VoicerClient.ServerObjects
         public void UserLeaveChannel(User user)
         {
             Channel channel = FindUserChannel(user);
-            channel.RemoveUser(user);
+            if (channel != null)
+                channel.RemoveUser(user);
         }
 
         public void UserAdd(User user, Channel channel)

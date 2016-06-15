@@ -66,12 +66,14 @@ namespace VoiceServer
 
 
         protected Channel curChannel;
+        internal bool initialized;
 
         public enum ClosingReason { TimedOut, ClientDisconnect, Kicked, Banned };
 
         // Constructor
         public ServerClient(IPAddress addrs, string name, short id) : base()
         {
+            initialized = false;
             joinPower = 1;
             this.name = name;
             _id = id;
@@ -82,6 +84,7 @@ namespace VoiceServer
             Connect(clientEndpoint);
             Send(new Packet(Messages.CONNECTED, BitConverter.GetBytes(Id)));
             StartTick(4);
+            initialized = true;
         }
 
         protected override void Tick()
@@ -96,14 +99,15 @@ namespace VoiceServer
 
             foreach (short packetId in PacketsAwaitingConfirmation.ToList())
             {
-                //RequestPacket(packetId);
+                RequestPacket(packetId);
             }
             PacketsAwaitingConfirmation.Clear();
         }
 
         public override void MessageSending(Messages message)
         {
-            PacketsAwaitingConfirmation.Add((short)message);
+            if (initialized)
+                PacketsAwaitingConfirmation.Add((short)message);
         }
 
         private void RequestPacket(short id)

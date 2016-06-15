@@ -138,7 +138,7 @@ namespace VoiceServer
             newClient.SwitchChannel(FindChannel(defaultChannel));
             newClient.Send(new Packet(Messages.GETUSERS, SerializeUsers()));
             SignedPacket newPacket = new SignedPacket(Messages.CONNECTCHANNEL, newClient.Id, BitConverter.GetBytes(defaultChannel).Concat(Encoding.ASCII.GetBytes(newClient.name)).ToArray());
-            SendToClients(0, newPacket, newClient.Id);
+            //SendToClients(0, newPacket, newClient.Id);
 
             Console.WriteLine(newClient.name + " Has Connected.");
         }
@@ -148,6 +148,7 @@ namespace VoiceServer
             ServerClient user = FindClient(BitConverter.ToInt16(packet.Data, 0));
             if (user != null)
             {
+                user.initialized = true;
                 user.RequestKey();
             }
         }
@@ -178,7 +179,11 @@ namespace VoiceServer
             {
                 short messageId = BitConverter.ToInt16(packet.Data, 2);
                 user.PacketsAwaitingConfirmation.Remove(messageId);
+                
+                if (messageId == (short)Messages.KEEPALIVE)
+                    user.UpdatesMissed = 0;
             }
+            else Console.WriteLine("NULL USER");
         }
 
         protected void HandleNewKeyPacket(Packet packet)
@@ -279,6 +284,8 @@ namespace VoiceServer
         {
             if (packetId == (short)Messages.GETUSERS)
                 client.Send(new Packet(Messages.GETUSERS, SerializeUsers()));
+            else if (packetId == (short)Messages.CONNECTED)
+                client.Send(new SignedPacket(Messages.CONNECTED, client.Id));
         }
 
         // Returns client with specified ID from connected client list.

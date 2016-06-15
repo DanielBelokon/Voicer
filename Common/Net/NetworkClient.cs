@@ -152,7 +152,7 @@ namespace Voicer.Common.Net
                 Packet packet = new Packet(data, remoteEP);
 
                 PacketRecieved(packet);
-                //Console.WriteLine(packet.Type.ToString());
+                Console.WriteLine("Received: " + packet.Type.ToString());
                 // Process buffer
                 packetHandler.HandlePacket(packet);
             }
@@ -177,8 +177,8 @@ namespace Voicer.Common.Net
             try
             {
                 StopTick();
-                StopRecieve();
                 StopListen();
+                StopSend();
             }
             catch (SocketException e)
             { Console.WriteLine("Exception closing connections in {0}: \n{1} \n\n {2}", GetType(), e.GetType(), e.StackTrace); }
@@ -210,7 +210,7 @@ namespace Voicer.Common.Net
             }
         }
 
-        public void StopRecieve()
+        public void StopSend()
         {
             if (_senderSocket != null)
             {
@@ -233,6 +233,7 @@ namespace Voicer.Common.Net
                 e.SetBuffer(buffer, 0, buffer.Length);
                 e.Completed += new EventHandler<SocketAsyncEventArgs>(MessageSent);
                 MessageSending(packet.Type);
+                Console.WriteLine("Sent: " + packet.Type.ToString());
                 _senderSocket.SendAsync(e);
             }
             catch (SocketException exc)

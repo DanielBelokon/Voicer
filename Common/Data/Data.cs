@@ -42,9 +42,9 @@ namespace Voicer.Common.Data
             StringBuilder output = new StringBuilder(input);
 
             output = output.Replace("%", "");
-            
 
-            if (output.ToString() != "")
+
+            if (output.ToString() != "" || output.ToString() == null)
                 return output.ToString();
             else return onEmpty;
         }

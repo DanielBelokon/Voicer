@@ -114,6 +114,8 @@ namespace Voicer.Common.Net
         // Recieve any and all packets that come into the listening port, seperate them by type, and forward to appropriate functions
         private void BeginReceive()
         {
+            if (_isListening || _listenSocket != null)
+                Disconnect();
             // Provides the local endpoint (port) for the UDP client to listen on.
             IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, _localPort);
             _isListening = true;

@@ -47,11 +47,16 @@ namespace VoicerClient.ServerObjects
 
         public void UserSwitchChannel(User user, Channel newChannel)
         {
-            if (channels.Contains(newChannel))
+            if (newChannel != null && user != null && channels.Contains(newChannel))
             {
                 UserLeaveChannel(user);
                 UserAdd(user, newChannel);
+                Console.WriteLine("User added to channel : " + newChannel.ID);
                 OnUserlistUpdate();
+            }
+            else
+            {
+                Console.WriteLine("Channel or user not found");
             }
         }
 
@@ -128,6 +133,7 @@ namespace VoicerClient.ServerObjects
 
         public Channel GetChannel(short channelID)
         {
+            Console.WriteLine("FINDING CHANNEL: " + channelID);
             foreach (Channel curChannel in channels)
             {
                 if (curChannel.ID == channelID)

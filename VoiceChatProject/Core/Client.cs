@@ -77,7 +77,7 @@ namespace VoicerClient
         {
             if (IsConnected)
             {
-                Console.WriteLine("Already connected, disconnecting...");
+                Console.WriteLine("Closing sockets...");
                 Disconnect();
                 Thread.Sleep(100);
             }
@@ -174,6 +174,7 @@ namespace VoicerClient
         {
             User newUser = new User(Encoding.ASCII.GetString(packet.Data.Skip(4).ToArray()), BitConverter.ToInt16(packet.Data, 0));
             server.UserAdd(newUser, BitConverter.ToInt16(packet.Data, 2));
+            Console.WriteLine("  USER CONNECTED: " + newUser.Name + ", ID: " + newUser.ID);
         }
             
 
@@ -182,7 +183,7 @@ namespace VoicerClient
             short clientId = BitConverter.ToInt16(packet.Data, 0);
             short channelId = BitConverter.ToInt16(packet.Data, 2);
 
-            server.UserSwitchChannel(server.GetUser(clientId), server.GetChannel(channelID));
+            server.UserSwitchChannel(server.GetUser(clientId), server.GetChannel(channelId));
         }
 
         public void HandleJoinChannelPacket(Packet packet)

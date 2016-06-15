@@ -82,9 +82,10 @@ namespace VoiceServer
             IPEndPoint clientEndpoint = new IPEndPoint(clientAdress, ClientPort);
             PacketsAwaitingConfirmation = new List<short>();
             Connect(clientEndpoint);
+            initialized = true;
             Send(new Packet(Messages.CONNECTED, BitConverter.GetBytes(Id)));
             StartTick(4);
-            initialized = true;
+            Console.WriteLine(name + " initialized.");
         }
 
         protected override void Tick()
@@ -94,6 +95,7 @@ namespace VoiceServer
 
             if (UpdatesMissed > MAX_UPDATES_MISSED)
             {
+                Console.WriteLine(name + " timed out.");
                 Disconnect();
             }
 

@@ -64,7 +64,10 @@ namespace VoicerClient.ServerObjects
         {
             Channel channel = FindUserChannel(user);
             if (channel != null)
+            {
                 channel.RemoveUser(user);
+                OnUserlistUpdate();
+            }
         }
 
         public void UserAdd(User user, Channel channel)

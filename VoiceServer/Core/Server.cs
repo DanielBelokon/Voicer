@@ -30,7 +30,7 @@ namespace VoiceServer
         protected AutoResetEvent packetRecieved;
 
         // Constructor
-        public Server (int port = 9999) : base()
+        public Server(int port = 9999) : base()
         {
             channels = new List<Channel>();
             //clientList = new List<ServerClient>();
@@ -79,6 +79,16 @@ namespace VoiceServer
             this.port = port;
             // Start listening for incoming packets and requests
             StartListen(port);
+
+            var host = Dns.GetHostEntry(Dns.GetHostName());
+            Console.WriteLine(" ~ Server Initialized on " + Dns.GetHostName());
+            foreach (var ip in host.AddressList)
+            {
+                if (ip.AddressFamily == AddressFamily.InterNetwork)
+                {
+                    Console.WriteLine("    > " + ip);
+                }
+            }
         }
 
         protected override void Tick()

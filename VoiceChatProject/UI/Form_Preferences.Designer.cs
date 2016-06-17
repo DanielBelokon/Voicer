@@ -62,7 +62,7 @@
             this.tabControl1.Multiline = true;
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(643, 466);
+            this.tabControl1.Size = new System.Drawing.Size(408, 135);
             this.tabControl1.TabIndex = 2;
             // 
             // tab_General
@@ -71,7 +71,7 @@
             this.tab_General.Location = new System.Drawing.Point(4, 22);
             this.tab_General.Name = "tab_General";
             this.tab_General.Padding = new System.Windows.Forms.Padding(3);
-            this.tab_General.Size = new System.Drawing.Size(635, 440);
+            this.tab_General.Size = new System.Drawing.Size(400, 109);
             this.tab_General.TabIndex = 0;
             this.tab_General.Text = "General";
             // 
@@ -85,7 +85,7 @@
             this.tab_Audio.Location = new System.Drawing.Point(4, 22);
             this.tab_Audio.Name = "tab_Audio";
             this.tab_Audio.Padding = new System.Windows.Forms.Padding(3);
-            this.tab_Audio.Size = new System.Drawing.Size(635, 440);
+            this.tab_Audio.Size = new System.Drawing.Size(400, 109);
             this.tab_Audio.TabIndex = 1;
             this.tab_Audio.Text = "Audio";
             this.tab_Audio.Click += new System.EventHandler(this.tab_Audio_Click);
@@ -129,7 +129,7 @@
             // 
             // Button_SaveSettings
             // 
-            this.Button_SaveSettings.Location = new System.Drawing.Point(579, 485);
+            this.Button_SaveSettings.Location = new System.Drawing.Point(344, 153);
             this.Button_SaveSettings.Name = "Button_SaveSettings";
             this.Button_SaveSettings.Size = new System.Drawing.Size(72, 23);
             this.Button_SaveSettings.TabIndex = 3;
@@ -139,7 +139,7 @@
             // 
             // Button_ResetSettings
             // 
-            this.Button_ResetSettings.Location = new System.Drawing.Point(16, 485);
+            this.Button_ResetSettings.Location = new System.Drawing.Point(16, 153);
             this.Button_ResetSettings.Name = "Button_ResetSettings";
             this.Button_ResetSettings.Size = new System.Drawing.Size(102, 23);
             this.Button_ResetSettings.TabIndex = 4;
@@ -152,7 +152,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.GhostWhite;
-            this.ClientSize = new System.Drawing.Size(667, 520);
+            this.ClientSize = new System.Drawing.Size(433, 187);
             this.Controls.Add(this.Button_ResetSettings);
             this.Controls.Add(this.Button_SaveSettings);
             this.Controls.Add(this.tabControl1);

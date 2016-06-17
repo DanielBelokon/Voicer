@@ -37,7 +37,9 @@ namespace Voicer.Common.Data
 
                 function.DynamicInvoke(parametars);
             }
-            else throw new KeyNotFoundException("The specified message did not have an affiliated handler function.");
+            else Console.WriteLine(" UNKNOWN PACKET RECIEVED...");
+                
+            //throw new KeyNotFoundException("The specified message did not have an affiliated handler function.");
         }
     }
 }

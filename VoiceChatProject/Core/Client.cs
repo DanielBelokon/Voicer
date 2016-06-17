@@ -132,7 +132,7 @@ namespace VoicerClient
             packetCount++;
             if (packet.Type != Messages.VOICE)
             {
-                Send(new SignedPacket(Messages.RECIEVED, this.clientID, BitConverter.GetBytes((short)packet.Type)));
+                Send(new SignedPacket(Messages.RECIEVED, clientID, BitConverter.GetBytes((short)packet.Type)));
             }
         }
 

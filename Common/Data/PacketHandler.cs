@@ -9,7 +9,6 @@ namespace Voicer.Common.Data
         public void HandlePacket(Packet packet)
         {
             Handle((short)packet.Type, packet);
-            packet.Dispose();
         }
 
         public void AddPacketHandler(Messages messageEnum, Delegate function)

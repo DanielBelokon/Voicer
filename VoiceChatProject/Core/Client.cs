@@ -174,7 +174,6 @@ namespace VoicerClient
         {
             User newUser = new User(Encoding.ASCII.GetString(packet.Data.Skip(4).ToArray()), BitConverter.ToInt16(packet.Data, 0));
             server.UserAdd(newUser, BitConverter.ToInt16(packet.Data, 2));
-            Console.WriteLine("  USER CONNECTED: " + newUser.Name + ", ID: " + newUser.ID);
         }
             
 

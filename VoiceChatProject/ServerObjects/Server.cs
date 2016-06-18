@@ -51,8 +51,8 @@ namespace VoicerClient.ServerObjects
             {
                 UserLeaveChannel(user);
                 UserAdd(user, newChannel);
-                Console.WriteLine("User added to channel : " + newChannel.ID);
                 OnUserlistUpdate();
+                Console.WriteLine("{0} swapped to channel {1} (id: {2})", user.Name, newChannel.Name, newChannel.ID);
             }
             else
             {
@@ -136,7 +136,6 @@ namespace VoicerClient.ServerObjects
 
         public Channel GetChannel(short channelID)
         {
-            Console.WriteLine("FINDING CHANNEL: " + channelID);
             foreach (Channel curChannel in channels)
             {
                 if (curChannel.ID == channelID)

@@ -236,7 +236,6 @@ namespace Voicer.Common.Net
                 e.SetBuffer(buffer, 0, buffer.Length);
                 e.Completed += new EventHandler<SocketAsyncEventArgs>(MessageSent);
                 MessageSending(packet.Type);
-                Console.WriteLine("-Sent " + packet.Type.ToString());
                 _senderSocket.SendAsync(e);
             }
             catch (SocketException exc)

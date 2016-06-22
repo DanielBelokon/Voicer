@@ -173,7 +173,7 @@
             // 
             this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(74, 391);
+            this.label1.Location = new System.Drawing.Point(72, 389);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(16, 13);
             this.label1.TabIndex = 2;
@@ -181,8 +181,7 @@
             // 
             // SendChatButton
             // 
-            this.SendChatButton.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
+            this.SendChatButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.SendChatButton.BackColor = System.Drawing.SystemColors.GradientInactiveCaption;
             this.SendChatButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.SendChatButton.Location = new System.Drawing.Point(1069, 131);
@@ -210,7 +209,6 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.chatbox_Input.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.chatbox_Input.Font = new System.Drawing.Font("Arial Rounded MT Bold", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.chatbox_Input.Location = new System.Drawing.Point(1, 1);
             this.chatbox_Input.MaxLength = 1024;
             this.chatbox_Input.Name = "chatbox_Input";
@@ -247,6 +245,9 @@
             // 
             // panel1
             // 
+            this.panel1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.panel1.BackColor = System.Drawing.SystemColors.ControlDark;
             this.panel1.Controls.Add(this.chatbox_Server);
             this.panel1.Location = new System.Drawing.Point(5, 6);
@@ -256,12 +257,16 @@
             // 
             // chatbox_Server
             // 
+            this.chatbox_Server.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.chatbox_Server.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.chatbox_Server.Location = new System.Drawing.Point(1, 1);
             this.chatbox_Server.Name = "chatbox_Server";
             this.chatbox_Server.Size = new System.Drawing.Size(1092, 81);
             this.chatbox_Server.TabIndex = 0;
             this.chatbox_Server.Text = "";
+            this.chatbox_Server.LinkClicked += new System.Windows.Forms.LinkClickedEventHandler(this.chatbox_LinkClicked);
             // 
             // ChatTab_Channel
             // 
@@ -276,6 +281,9 @@
             // 
             // ChatBox_BackPanel
             // 
+            this.ChatBox_BackPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.ChatBox_BackPanel.BackColor = System.Drawing.SystemColors.ControlDark;
             this.ChatBox_BackPanel.Controls.Add(this.chatbox_Output);
             this.ChatBox_BackPanel.Location = new System.Drawing.Point(5, 6);
@@ -285,11 +293,11 @@
             // 
             // chatbox_Output
             // 
-            this.chatbox_Output.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.chatbox_Output.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.chatbox_Output.BackColor = System.Drawing.SystemColors.ButtonHighlight;
             this.chatbox_Output.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.chatbox_Output.Font = new System.Drawing.Font("Arial Rounded MT Bold", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.chatbox_Output.Location = new System.Drawing.Point(1, 1);
             this.chatbox_Output.Name = "chatbox_Output";
             this.chatbox_Output.ReadOnly = true;
@@ -297,6 +305,7 @@
             this.chatbox_Output.TabIndex = 0;
             this.chatbox_Output.TabStop = false;
             this.chatbox_Output.Text = "";
+            this.chatbox_Output.LinkClicked += new System.Windows.Forms.LinkClickedEventHandler(this.chatbox_LinkClicked);
             this.chatbox_Output.TextChanged += new System.EventHandler(this.chatbox_Output_TextChanged);
             // 
             // ChatArea_BackPanel

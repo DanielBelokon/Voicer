@@ -372,7 +372,7 @@ namespace VoicerClient
         public void RequetKey()
         {
             Console.WriteLine("Requesting new key from server...");
-            Send(new SignedPacket(Messages.NEWKEY, clientID));
+            Send(new SignedPacket(Messages.GETKEY, clientID));
         }
 
         public User FindClient(short id)

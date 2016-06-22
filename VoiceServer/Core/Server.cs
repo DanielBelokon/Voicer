@@ -73,7 +73,7 @@ namespace VoiceServer
             packetHandler.AddPacketHandler(Messages.DISCONNECT, new Action<Packet>(HandleDisconnectPacket));
             packetHandler.AddPacketHandler(Messages.RECIEVED, new Action<Packet>(HandleRecievedPacket));
             packetHandler.AddPacketHandler(Messages.JOINCHANNEL, new Action<Packet>(HandleJoinChannelPacket));
-            packetHandler.AddPacketHandler(Messages.NEWKEY, new Action<Packet>(HandleNewKeyPacket));
+            packetHandler.AddPacketHandler(Messages.GETKEY, new Action<Packet>(HandleNewKeyPacket));
             packetHandler.AddPacketHandler(Messages.SETKEY, new Action<Packet>(HandleSetKeyPacket));
             packetHandler.AddPacketHandler(Messages.SERVERMESSAGE, new Action<Packet>(HandleServerMessagePacket));
 

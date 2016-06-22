@@ -237,6 +237,10 @@ namespace VoicerClient.UI
             chatbox_Output.ScrollToCaret();
         }
 
+        private void chatbox_LinkClicked(object sender, LinkClickedEventArgs e)
+        {
+            System.Diagnostics.Process.Start(e.LinkText);
+        }
     }
 
 

@@ -31,7 +31,7 @@ namespace VoiceServer
         protected AutoResetEvent packetRecieved;
 
         // Constructor
-        public Server(int port = 9999) : base()
+        public Server(int port = 9996) : base()
         {
             channels = new List<Channel>();
             //clientList = new List<ServerClient>();

@@ -117,12 +117,12 @@ namespace VoicerClient.UI
 
                     case 1:
                         MessageBox.Show("There has been an error, enter a valid input");
-                        localClient = null;
+                        localClient.Disconnecting();
                         break;
 
                     case 2:
                         MessageBox.Show("There has been an error, make sure you have a stable connection");
-                        localClient = null;
+                        localClient.Disconnecting();
                         break;
                 }
             }
@@ -136,8 +136,8 @@ namespace VoicerClient.UI
                 chatbox_Output.Invoke(new Action<string>(OnChatMessage), text);
                 return;
             }
-
-            chatbox_Output.AppendText(text + "\n");
+            
+            chatbox_Output.AppendText("<" + DateTime.Now.ToString("HH:mm:ss") + "> " + text + "\n");
         }
 
         public void OnServerMessage(string text)

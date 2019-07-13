@@ -19,10 +19,28 @@ namespace VoicerClient.UI
         public Form_Connect()
         {
             InitializeComponent();
+            this.FormBorderStyle = FormBorderStyle.FixedDialog;
             invalidInput = false;
         }
 
         private void Button_Connect_Click(object sender, EventArgs e)
+        {
+            this.Connect();
+        }
+
+        private void Form_Connect_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            e.Cancel = invalidInput;
+            invalidInput = false;
+        }
+
+        private void Connect_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+                this.Connect();
+        }
+
+        private void Connect()
         {
             serverIp = Textbox_ServerIp.Text;
             nickname = Textbox_Nickname.Text;
@@ -34,12 +52,6 @@ namespace VoicerClient.UI
                 // Don't close the form if input is invalid
                 invalidInput = true;
             }
-        }
-
-        private void Form_Connect_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            e.Cancel = invalidInput;
-            invalidInput = false;
         }
     }
 }

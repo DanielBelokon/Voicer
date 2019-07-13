@@ -7,6 +7,9 @@ using System.Net.Sockets;
 using System.Threading;
 using Voicer.Common.Data;
 
+using NATUPNPLib;
+using System.Diagnostics;
+
 namespace Voicer.Common.Net
 {
     public class NetworkClient : IDisposable
@@ -63,7 +66,7 @@ namespace Voicer.Common.Net
         public void Connect(IPEndPoint remoteEP)
         {
             _senderSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-
+            _senderSocket.Bind(new IPEndPoint(IPAddress.Parse("192.168.1.39"), _localPort));
             _senderSocket.Connect(remoteEP);
             _isConnected = true;
         }
@@ -108,6 +111,11 @@ namespace Voicer.Common.Net
         {
             _packetRecieved = new AutoResetEvent(true);
             _localPort = localPort;
+            UPnPNATClass upnpnat = new UPnPNATClass();
+            IStaticPortMappingCollection mappingCol = upnpnat.StaticPortMappingCollection;
+            mappingCol.Add(localPort, "UDP", localPort, "192.168.1.39", true, "Voicer Network Client");
+            Trace.WriteLine("         Added mapping to UDP port - " + localPort);
+            //mappingCol.Remove(localPort, "UDP");
             _listenThread = new Thread(BeginReceive);
             _listenThread.Start(); 
         }
@@ -117,10 +125,13 @@ namespace Voicer.Common.Net
             if (_isListening || _listenSocket != null)
                 Disconnect();
             // Provides the local endpoint (port) for the UDP client to listen on.
-            IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, _localPort);
+            IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Parse("192.168.1.39"), _localPort);
+            //IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, _localPort);
             _isListening = true;
             // Listening socket
             _listenSocket = new UdpClient(localEndPoint);
+
+            Console.WriteLine(_listenSocket.Client.IsBound);
 
             try
             {
@@ -153,7 +164,7 @@ namespace Voicer.Common.Net
 
                 Packet packet = new Packet(data, remoteEP);
 
-                //Console.WriteLine("+Received: " + packet.Type.ToString());
+                Console.WriteLine("+Received: " + packet.Type.ToString());
                 // Process buffer
                 packetHandler.HandlePacket(packet);
                 PacketRecieved(packet);
@@ -168,7 +179,6 @@ namespace Voicer.Common.Net
 
         public virtual void PacketRecieved(Packet packet)
         {
-
         }
         #endregion listen
 
@@ -211,6 +221,7 @@ namespace Voicer.Common.Net
                 _packetRecieved.Dispose();
                 _packetRecieved = null;
             }
+
         }
 
         public void StopSend()
@@ -229,6 +240,7 @@ namespace Voicer.Common.Net
 
             try
             {
+                Console.WriteLine("Sending packet " + packet.Type);
                 byte[] buffer = packet.Encode();
 
                 SocketAsyncEventArgs e = new SocketAsyncEventArgs();

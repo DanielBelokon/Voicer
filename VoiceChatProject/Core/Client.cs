@@ -36,7 +36,7 @@ namespace VoicerClient
         // The nickname used by the client that is shown to other users
         protected string nickname;
 
-        const int ServerPort = 9999;
+        const int ServerPort = 9996;
 
         // Stops the user list from updating while it's already being updated on a different thread.
         private object lockedThread = new object();
@@ -81,10 +81,11 @@ namespace VoicerClient
                 Disconnect();
                 Thread.Sleep(100);
             }
-
+            Console.WriteLine("-Init Connect");
             ChangeStatus("Connecting...");
             try
             {
+                Console.WriteLine("-Init Connect");
                 serverAddress = IPAddress.Parse(serverIP);
                 endPoint = new IPEndPoint(serverAddress, ServerPort);
                 Console.WriteLine("Starting up sockets...");
@@ -107,11 +108,13 @@ namespace VoicerClient
 
             catch (FormatException)
             {
+                Console.WriteLine("Format Exception");
                 return 1;
             }
 
             catch (SocketException)
             {
+                Console.WriteLine("Socket Exception");
                 return 2;
             }
         }
@@ -407,6 +410,9 @@ namespace VoicerClient
 
         public void JoinChannel(short channelID)
         {
+            if (this.channelID == channelID)
+                return;
+
             byte[] buffer = BitConverter.GetBytes(channelID).ToArray();
             Send(new SignedPacket(Messages.JOINCHANNEL, clientID, buffer));
         }

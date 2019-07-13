@@ -16,8 +16,6 @@ namespace VoiceServer
         // Max KeepAlive packets a user can miss before he times out & forced to disconnect.
         const int MAX_UPDATES_MISSED = 5;
 
-        const int ClientPort = 9998;
-
         public int UpdatesMissed;
 
         public List<short> PacketsAwaitingConfirmation;
@@ -71,15 +69,15 @@ namespace VoiceServer
         public enum ClosingReason { TimedOut, ClientDisconnect, Kicked, Banned };
 
         // Constructor
-        public ServerClient(IPAddress addrs, string name, short id) : base()
+        public ServerClient(IPEndPoint _clientEndPoint, string name, short id) : base()
         {
             initialized = false;
             joinPower = 1;
             this.name = name;
             _id = id;
-            clientAdress = addrs;
+            clientAdress = _clientEndPoint.Address;
             UpdatesMissed = 0;
-            IPEndPoint clientEndpoint = new IPEndPoint(clientAdress, ClientPort);
+            IPEndPoint clientEndpoint = _clientEndPoint;
             PacketsAwaitingConfirmation = new List<short>();
             Connect(clientEndpoint);
             initialized = true;

@@ -90,7 +90,7 @@ namespace VoicerClient
                 endPoint = new IPEndPoint(serverAddress, ServerPort);
                 Console.WriteLine("Starting up sockets...");
                 Connect(endPoint);
-                StartListen(9998);
+                StartListen();
                 // Remove any unwanted characters that could disrupt the functions of the server.
                 nickname = Data.MakeSafe(nick);
 

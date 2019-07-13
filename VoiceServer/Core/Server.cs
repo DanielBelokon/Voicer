@@ -143,7 +143,7 @@ namespace VoiceServer
         {
             string name = Data.MakeSafe(Encoding.ASCII.GetString(packet.Data));
 
-            ServerClient newClient = new ServerClient(packet.Sender.Address, name, ++CLIENT_NEXTID);
+            ServerClient newClient = new ServerClient(packet.Sender, name, ++CLIENT_NEXTID);
             newClient.ClientDisconnected += ClientDisconnect;
             newClient.ClientRequestPacket += ClientRequestPacket;
             newClient.SwitchChannel(FindChannel(defaultChannel));

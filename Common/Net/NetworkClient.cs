@@ -20,6 +20,7 @@ namespace Voicer.Common.Net
         private UdpClient _listenSocket;
         private AutoResetEvent _packetRecieved;
         private int _localPort;
+        private IPAddress _localAddress;
         protected PacketHandler packetHandler;
         private bool _isListening;
         public bool IsListening
@@ -57,6 +58,17 @@ namespace Voicer.Common.Net
         public NetworkClient()
         {
             packetHandler = new PacketHandler();
+            var host = Dns.GetHostEntry(Dns.GetHostName());
+            foreach (var ip in host.AddressList)
+            {
+                if (ip.AddressFamily == AddressFamily.InterNetwork)
+                {
+                    _localAddress = ip;
+                    Console.WriteLine("Init NetworkClient on: " + ip.ToString());
+                    return;
+                }
+            }
+            throw new Exception("No network adapters with an IPv4 address in the system!");
         }
 
         /// <summary>
@@ -66,7 +78,7 @@ namespace Voicer.Common.Net
         public void Connect(IPEndPoint remoteEP)
         {
             _senderSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            _senderSocket.Bind(new IPEndPoint(IPAddress.Parse("192.168.1.39"), _localPort));
+            _senderSocket.Bind(new IPEndPoint(_localAddress, _localPort));
             _senderSocket.Connect(remoteEP);
             _isConnected = true;
         }
@@ -107,13 +119,18 @@ namespace Voicer.Common.Net
         #endregion Tick
 
         #region listen
+        public void StartListen()
+        {
+            StartListen(9998);
+        }
+
         public void StartListen(int localPort)
         {
             _packetRecieved = new AutoResetEvent(true);
             _localPort = localPort;
             UPnPNATClass upnpnat = new UPnPNATClass();
             IStaticPortMappingCollection mappingCol = upnpnat.StaticPortMappingCollection;
-            mappingCol.Add(localPort, "UDP", localPort, "192.168.1.39", true, "Voicer Network Client");
+            mappingCol.Add(localPort, "UDP", localPort, _localAddress.ToString(), true, "Voicer Network Client");
             Trace.WriteLine("         Added mapping to UDP port - " + localPort);
             //mappingCol.Remove(localPort, "UDP");
             _listenThread = new Thread(BeginReceive);
@@ -125,7 +142,7 @@ namespace Voicer.Common.Net
             if (_isListening || _listenSocket != null)
                 Disconnect();
             // Provides the local endpoint (port) for the UDP client to listen on.
-            IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Parse("192.168.1.39"), _localPort);
+            IPEndPoint localEndPoint = new IPEndPoint(_localAddress, _localPort);
             //IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, _localPort);
             _isListening = true;
             // Listening socket
@@ -240,7 +257,7 @@ namespace Voicer.Common.Net
 
             try
             {
-                Console.WriteLine("Sending packet " + packet.Type);
+                Console.WriteLine("Sending packet " + packet.Type + " to " + this._senderSocket.LocalEndPoint);
                 byte[] buffer = packet.Encode();
 
                 SocketAsyncEventArgs e = new SocketAsyncEventArgs();

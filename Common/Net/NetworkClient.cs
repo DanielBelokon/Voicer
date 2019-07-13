@@ -257,7 +257,7 @@ namespace Voicer.Common.Net
 
             try
             {
-                Console.WriteLine("Sending packet " + packet.Type + " to " + this._senderSocket.LocalEndPoint);
+                Console.WriteLine("Sending packet " + packet.Type + " to " + this._senderSocket.RemoteEndPoint);
                 byte[] buffer = packet.Encode();
 
                 SocketAsyncEventArgs e = new SocketAsyncEventArgs();
